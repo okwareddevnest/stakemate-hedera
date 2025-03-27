@@ -19,6 +19,7 @@ import {
   FaBuilding,
   FaUsers
 } from 'react-icons/fa';
+import apiService from '../services/api';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -27,96 +28,175 @@ const ProjectDetail = () => {
   const [error, setError] = useState(null);
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [tokenInfo, setTokenInfo] = useState(null);
 
-  // Mock project data
-  const projectData = {
-    1: {
-      id: 1,
-      name: 'Nairobi Commuter Rail',
-      type: 'Transportation',
-      location: 'Nairobi, Kenya',
-      roi: 8.5,
-      riskLevel: 'Medium',
-      esgScore: 78,
-      progress: 45,
-      description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-      longDescription: `The Nairobi Commuter Rail project aims to transform urban mobility in Kenya's capital by expanding and modernizing the existing rail network. This infrastructure initiative will connect major suburbs to the central business district, significantly reducing traffic congestion and carbon emissions.
+  // Fetch project data
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      setLoading(true);
+      try {
+        // Fetch project details
+        const projectResponse = await apiService.getProjectById(id);
+        
+        if (!projectResponse) {
+          throw new Error('Project not found');
+        }
+        
+        // Transform project data
+        const projectData = {
+          ...projectResponse,
+          riskLevel: getRiskLevelText(projectResponse.risk?.overallScore || 50),
+          esgScore: calculateESGScore(projectResponse.esgMetrics),
+          progress: calculateProgress(projectResponse.timeline),
+          longDescription: projectResponse.description || '',
+          startDate: projectResponse.timeline?.startDate,
+          estimatedCompletion: projectResponse.timeline?.estimatedCompletionDate,
+          minInvestment: projectResponse.investmentMetrics?.minInvestmentAmount || 5000,
+          totalFunding: projectResponse.financials?.totalBudget || 0,
+          currentFunding: projectResponse.financials?.fundingSecured || 0,
+          tokenSymbol: projectResponse.symbol,
+          tokenPrice: 50, // Mock data for now
+          stakeholders: projectResponse.stakeholders || ['Government of Kenya', 'Local Communities', 'Private Investors'],
+          documents: [
+            { name: 'Environmental Impact Assessment', url: '#' },
+            { name: 'Feasibility Study', url: '#' },
+            { name: 'Project Timeline', url: '#' }
+          ],
+        };
+        
+        setProject(projectData);
+        
+        // If we have a token ID, fetch token information
+        if (projectResponse.tokenId) {
+          try {
+            const tokenResponse = await apiService.getTokenInfo(projectResponse.tokenId);
+            if (tokenResponse?.success) {
+              setTokenInfo(tokenResponse.data);
+            }
+          } catch (tokenError) {
+            console.error('Error fetching token info:', tokenError);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching project:', err);
+        setError(err.message || 'Failed to load project details');
+        
+        // Use sample data as fallback for demo
+        setProject({
+          id: id,
+          name: 'Nairobi Commuter Rail',
+          type: 'Transportation',
+          location: 'Nairobi, Kenya',
+          roi: 8.5,
+          riskLevel: 'Medium',
+          esgScore: 78,
+          progress: 45,
+          description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
+          longDescription: `The Nairobi Commuter Rail project aims to transform urban mobility in Kenya's capital by expanding and modernizing the existing rail network. This infrastructure initiative will connect major suburbs to the central business district, significantly reducing traffic congestion and carbon emissions.
 
 The project includes the construction of new rail lines, modernization of existing tracks, and development of modern stations with digital payment systems and real-time tracking. Solar-powered stations will further reduce the environmental impact of the transit system.
 
 By improving public transportation infrastructure, the project will enhance economic productivity by reducing commute times, lower transportation costs for residents, and contribute to climate change mitigation through reduced vehicle emissions.`,
-      startDate: '2023-06-15',
-      estimatedCompletion: '2026-12-31',
-      minInvestment: 5000,
-      totalFunding: 45000000,
-      currentFunding: 28000000,
-      tokenSymbol: 'NCR',
-      tokenPrice: 50,
-      stakeholders: ['Kenya Railways Corporation', 'Nairobi Metropolitan Services', 'Ministry of Transport'],
-      documents: [
-        { name: 'Environmental Impact Assessment', url: '#' },
-        { name: 'Feasibility Study', url: '#' },
-        { name: 'Project Timeline', url: '#' }
-      ],
-      milestones: [
-        { name: 'Land Acquisition', status: 'Completed', date: '2023-09-01' },
-        { name: 'Environmental Approval', status: 'Completed', date: '2023-11-15' },
-        { name: 'Foundation Work', status: 'In Progress', date: '2024-05-01' },
-        { name: 'Track Installation', status: 'Planned', date: '2025-02-01' },
-        { name: 'Station Construction', status: 'Planned', date: '2025-07-01' },
-        { name: 'System Testing', status: 'Planned', date: '2026-06-01' },
-        { name: 'Project Completion', status: 'Planned', date: '2026-12-01' }
-      ],
-      updates: [
-        { date: '2024-02-15', title: 'Construction Commenced', content: 'Official groundbreaking ceremony held with stakeholders present.' },
-        { date: '2024-01-10', title: 'Contractor Selected', content: 'After competitive bidding, primary contractor has been selected.' },
-        { date: '2023-12-05', title: 'Funding Milestone Reached', content: '50% of required funding secured through public and private investment.' }
-      ],
-      risks: [
-        { category: 'Construction', level: 'Medium', description: 'Potential delays due to weather conditions and supply chain issues.' },
-        { category: 'Regulatory', level: 'Low', description: 'All major approvals obtained, minimal regulatory risk remains.' },
-        { category: 'Financial', level: 'Medium', description: 'Currency fluctuation may impact imported material costs.' }
-      ],
-      impact: {
-        economic: 'Creates 1,200+ jobs during construction and 300+ permanent positions. Estimated to save commuters 2 hours daily.',
-        environmental: 'Projected reduction of 25,000 metric tons of CO2 emissions annually by reducing private vehicle usage.',
-        social: 'Improves access to employment, education, and services for underserved communities. Enhances urban mobility for all.'
+          startDate: '2023-06-15',
+          estimatedCompletion: '2026-12-31',
+          minInvestment: 5000,
+          totalFunding: 45000000,
+          currentFunding: 28000000,
+          tokenSymbol: 'NCR',
+          tokenPrice: 50,
+          stakeholders: ['Kenya Railways Corporation', 'Nairobi Metropolitan Services', 'Ministry of Transport'],
+          documents: [
+            { name: 'Environmental Impact Assessment', url: '#' },
+            { name: 'Feasibility Study', url: '#' },
+            { name: 'Project Timeline', url: '#' }
+          ],
+          milestones: [
+            { name: 'Land Acquisition', status: 'Completed', date: '2023-09-01' },
+            { name: 'Environmental Approval', status: 'Completed', date: '2023-11-15' },
+            { name: 'Foundation Work', status: 'In Progress', date: '2024-05-01' },
+            { name: 'Track Installation', status: 'Planned', date: '2025-02-01' },
+            { name: 'Station Construction', status: 'Planned', date: '2025-07-01' },
+            { name: 'System Testing', status: 'Planned', date: '2026-06-01' },
+            { name: 'Project Completion', status: 'Planned', date: '2026-12-01' }
+          ],
+          updates: [
+            { date: '2024-02-15', title: 'Construction Commenced', content: 'Official groundbreaking ceremony held with stakeholders present.' },
+            { date: '2024-01-10', title: 'Contractor Selected', content: 'After competitive bidding, primary contractor has been selected.' },
+            { date: '2023-12-05', title: 'Funding Milestone Reached', content: '50% of required funding secured through public and private investment.' }
+          ],
+          risks: [
+            { category: 'Construction', level: 'Medium', description: 'Potential delays due to weather conditions and supply chain issues.' },
+            { category: 'Regulatory', level: 'Low', description: 'All major approvals obtained, minimal regulatory risk remains.' },
+            { category: 'Financial', level: 'Medium', description: 'Currency fluctuation may impact imported material costs.' }
+          ],
+          impact: {
+            economic: 'Creates 1,200+ jobs during construction and 300+ permanent positions. Estimated to save commuters 2 hours daily.',
+            environmental: 'Projected reduction of 25,000 metric tons of CO2 emissions annually by reducing private vehicle usage.',
+            social: 'Improves access to employment, education, and services for underserved communities. Enhances urban mobility for all.'
+          }
+        });
+      } finally {
+        setLoading(false);
       }
-    },
-    // Add more projects as needed
-  };
-
-  // Fetch project data
-  useEffect(() => {
-    setLoading(true);
+    };
     
-    // Simulate API call with setTimeout
-    setTimeout(() => {
-      const foundProject = projectData[id];
-      if (foundProject) {
-        setProject(foundProject);
-        setLoading(false);
-      } else {
-        setError('Project not found');
-        setLoading(false);
-      }
-    }, 500);
+    fetchProjectData();
   }, [id]);
+
+  // Helper functions
+  const getRiskLevelText = (riskScore) => {
+    if (riskScore < 30) return 'Low';
+    if (riskScore < 45) return 'Medium-Low';
+    if (riskScore < 60) return 'Medium';
+    if (riskScore < 80) return 'Medium-High';
+    return 'High';
+  };
+  
+  const calculateESGScore = (esgMetrics) => {
+    if (!esgMetrics) return 70; // Default score
+    
+    // Simple scoring based on available metrics
+    let score = 70;
+    if (esgMetrics.environmentalImpact === 'positive') score += 10;
+    if (esgMetrics.environmentalImpact === 'very positive') score += 20;
+    if (esgMetrics.socialBenefit === 'high') score += 10;
+    if (esgMetrics.jobsCreated > 1000) score += 5;
+    if (esgMetrics.carbonReduction > 50000) score += 5;
+    
+    return Math.min(score, 100);
+  };
+  
+  const calculateProgress = (timeline) => {
+    if (!timeline) return 30; // Default progress
+    
+    const now = new Date();
+    const start = new Date(timeline.startDate);
+    const end = new Date(timeline.estimatedCompletionDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 30;
+    
+    const totalDuration = end - start;
+    const elapsed = now - start;
+    
+    let progress = Math.round((elapsed / totalDuration) * 100);
+    // Cap between 0 and 100
+    return Math.max(0, Math.min(100, progress));
+  };
 
   // Get project type icon
   const getProjectIcon = (type) => {
-    switch (type) {
-      case 'Transportation':
+    switch (type?.toLowerCase()) {
+      case 'transportation':
         return <FaRoad className="text-primary h-6 w-6" />;
-      case 'Energy':
+      case 'energy':
         return <FaLightbulb className="text-yellow-500 h-6 w-6" />;
-      case 'Water':
+      case 'water':
         return <FaWater className="text-blue-500 h-6 w-6" />;
-      case 'Digital':
+      case 'digital':
         return <FaNetworkWired className="text-purple-500 h-6 w-6" />;
-      case 'Social':
+      case 'social':
         return <FaBuilding className="text-orange-500 h-6 w-6" />;
-      case 'Environmental':
+      case 'environmental':
         return <FaLeaf className="text-secondary h-6 w-6" />;
       default:
         return <FaBuilding className="text-gray-500 h-6 w-6" />;
@@ -142,10 +222,33 @@ By improving public transportation infrastructure, the project will enhance econ
   };
 
   // Handle investment form submission
-  const handleInvestmentSubmit = (e) => {
+  const handleInvestmentSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, this would connect to the backend and handle the investment
-    alert(`Investment of KES ${investmentAmount} submitted for ${project.name}. This is a demo, no actual investment was made.`);
+    
+    if (!investmentAmount || isNaN(parseFloat(investmentAmount)) || parseFloat(investmentAmount) <= 0) {
+      alert('Please enter a valid investment amount');
+      return;
+    }
+    
+    // Check if amount meets minimum
+    if (parseFloat(investmentAmount) < project.minInvestment) {
+      alert(`Minimum investment amount is ${project.minInvestment} KES`);
+      return;
+    }
+    
+    try {
+      // In a real application, you would use the actual user ID
+      const userId = 'user-1743079616219'; // Demo user ID
+      const response = await apiService.simulateInvestment(userId, project.id, parseFloat(investmentAmount));
+      
+      if (response) {
+        alert(`Investment simulation successful! You've invested ${investmentAmount} KES in ${project.name}. This is a demo, no actual investment was made.`);
+        setInvestmentAmount('');
+      }
+    } catch (error) {
+      console.error('Investment simulation failed:', error);
+      alert(`Investment simulation failed: ${error.message || 'Unknown error'}`);
+    }
   };
 
   if (loading) {

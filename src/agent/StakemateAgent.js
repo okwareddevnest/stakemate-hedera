@@ -12,9 +12,7 @@ class StakemateAgent {
     // Initialize Hedera integration
     this.hederaKit = new HederaAgentKit();
     
-    // Initialize state
-    this.projects = new Map(); // Map of infrastructure projects
-    this.users = new Map(); // Map of users
+    // Initialize state for sentiment and recommendations (these are kept in memory)
     this.recommendations = new Map(); // Map of recommendations by user
     this.sentimentData = new Map(); // Map of sentiment data by project
     
@@ -43,7 +41,10 @@ class StakemateAgent {
   async createProject(projectData) {
     try {
       // Create project model
-      const project = new InfrastructureProject(projectData);
+      const project = new InfrastructureProject({
+        ...projectData,
+        id: `project-${Date.now()}`
+      });
       
       // Calculate risk score
       project.calculateRiskScore();
@@ -62,8 +63,11 @@ class StakemateAgent {
         description: project.description
       });
       
-      // Store project
-      this.projects.set(project.id, project);
+      // Update project with topic ID
+      project.topicId = topicResult.topicId;
+      
+      // Save project to database
+      await project.save();
       
       console.log(`Created project: ${project.name} with token ID ${project.tokenId}`);
       return project;
@@ -78,12 +82,21 @@ class StakemateAgent {
    * @param {string} projectId Project ID
    * @returns {Object} Project
    */
-  getProject(projectId) {
-    const project = this.projects.get(projectId);
+  async getProject(projectId) {
+    const project = await InfrastructureProject.findOne({ id: projectId });
     if (!project) {
       throw new Error(`Project not found: ${projectId}`);
     }
     return project;
+  }
+
+  /**
+   * List all projects
+   * @param {Object} filters Optional filters
+   * @returns {Array} Projects
+   */
+  async listProjects(filters = {}) {
+    return await InfrastructureProject.find(filters);
   }
 
   /**
@@ -94,7 +107,7 @@ class StakemateAgent {
    */
   async updateProject(projectId, updateData) {
     try {
-      const project = this.getProject(projectId);
+      const project = await this.getProject(projectId);
       
       // Update project data
       Object.keys(updateData).forEach(key => {
@@ -118,11 +131,16 @@ class StakemateAgent {
         }
       });
       
+      // Update the updatedBy field
+      if (updateData.updatedBy) {
+        project.updatedBy = updateData.updatedBy;
+      }
+      
       // Recalculate risk score
       project.calculateRiskScore();
       
-      // Update the project in storage
-      this.projects.set(projectId, project);
+      // Save the updated project
+      await project.save();
       
       // Record update on Hedera
       await this.recordProjectUpdate(projectId, updateData);
@@ -142,7 +160,7 @@ class StakemateAgent {
    */
   async recordProjectUpdate(projectId, updateData) {
     try {
-      const project = this.getProject(projectId);
+      const project = await this.getProject(projectId);
       
       // Create update record
       const updateRecord = {
@@ -171,13 +189,16 @@ class StakemateAgent {
    * @param {Object} userData User data
    * @returns {Object} Created user
    */
-  createUser(userData) {
+  async createUser(userData) {
     try {
       // Create user model
-      const user = new User(userData);
+      const user = new User({
+        ...userData,
+        id: `user-${Date.now()}`
+      });
       
-      // Store user
-      this.users.set(user.id, user);
+      // Save user to database
+      await user.save();
       
       console.log(`Created user: ${user.name} with ID ${user.id}`);
       return user;
@@ -192,12 +213,21 @@ class StakemateAgent {
    * @param {string} userId User ID
    * @returns {Object} User
    */
-  getUser(userId) {
-    const user = this.users.get(userId);
+  async getUser(userId) {
+    const user = await User.findOne({ id: userId });
     if (!user) {
       throw new Error(`User not found: ${userId}`);
     }
     return user;
+  }
+
+  /**
+   * List all users
+   * @param {Object} filters Optional filters
+   * @returns {Array} Users
+   */
+  async listUsers(filters = {}) {
+    return await User.find(filters);
   }
 
   /**
@@ -206,28 +236,44 @@ class StakemateAgent {
    * @param {Object} updateData Update data
    * @returns {Object} Updated user
    */
-  updateUser(userId, updateData) {
+  async updateUser(userId, updateData) {
     try {
-      const user = this.getUser(userId);
+      const user = await this.getUser(userId);
       
       // Update user data
       Object.keys(updateData).forEach(key => {
         if (key === 'riskProfile' && updateData.riskProfile) {
           // Handle risk profile updates
           user.updateRiskProfile(updateData.riskProfile);
+        } else if (key === 'investmentHistory' && updateData.investmentHistory) {
+          // Handle investment history updates
+          if (Array.isArray(updateData.investmentHistory)) {
+            // Replace entire history
+            user.investmentHistory = updateData.investmentHistory;
+          } else {
+            // Add single investment
+            user.addInvestment(updateData.investmentHistory);
+          }
         } else if (key === 'learningProgress' && updateData.learningProgress) {
           // Handle learning progress updates
           if (updateData.learningProgress.completedLesson) {
+            // Complete a lesson
             user.completeLesson(updateData.learningProgress.completedLesson);
+          } else {
+            // Update other learning progress properties
+            Object.assign(user.learningProgress, updateData.learningProgress);
           }
+        } else if (key === 'preferences' && updateData.preferences) {
+          // Handle preferences updates
+          Object.assign(user.preferences, updateData.preferences);
         } else if (user[key] !== undefined) {
           // Update other properties
           user[key] = updateData[key];
         }
       });
       
-      // Update the user in storage
-      this.users.set(userId, user);
+      // Save the updated user
+      await user.save();
       
       return user;
     } catch (error) {
@@ -237,38 +283,42 @@ class StakemateAgent {
   }
 
   /**
-   * Get educational content based on user's learning progress
+   * Get educational content for a user
    * @param {string} userId User ID
-   * @param {string} topic Topic to learn about
+   * @param {string} topic Topic to get content for
    * @returns {Object} Educational content
    */
-  getEducationalContent(userId, topic) {
+  async getEducationalContent(userId, topic) {
     try {
-      const user = this.getUser(userId);
+      const user = await this.getUser(userId);
       
-      // Get current knowledge level
-      const knowledgeScore = user.learningProgress.knowledgeScore[topic] || 0;
+      // Logic to fetch and personalize educational content would go here
+      // For now, return mock data
+      const topicScores = user.learningProgress.knowledgeScore;
+      const topicScore = topicScores[topic] || 0;
       
-      // Determine content difficulty level
-      let level = 'beginner';
-      if (knowledgeScore > 70) {
-        level = 'advanced';
-      } else if (knowledgeScore > 30) {
-        level = 'intermediate';
+      let difficultyLevel = 'beginner';
+      if (topicScore > 70) {
+        difficultyLevel = 'advanced';
+      } else if (topicScore > 30) {
+        difficultyLevel = 'intermediate';
       }
       
-      // In a real implementation, this would fetch from a content database
-      // For now, return mock content
-      const content = {
+      // Mock content based on topic and difficulty
+      return {
+        userId,
         topic,
-        level,
-        title: `Understanding ${topic} in infrastructure investing`,
-        content: `This is educational content about ${topic} at ${level} level.`,
-        lessonId: `lesson-${topic}-${level}-${Date.now()}`,
-        scoreIncrement: 10
+        difficultyLevel,
+        title: `Understanding ${topic} in Infrastructure Investing`,
+        content: `This is personalized ${difficultyLevel} content about ${topic}.`,
+        resources: [
+          { title: `${topic} Guide`, url: `https://example.com/${topic}-guide` },
+          { title: `${topic} in Practice`, url: `https://example.com/${topic}-practice` }
+        ],
+        quiz: [
+          { question: `Question about ${topic}?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], answer: 0 }
+        ]
       };
-      
-      return content;
     } catch (error) {
       console.error(`Error getting educational content for user ${userId}:`, error);
       throw error;
@@ -276,114 +326,69 @@ class StakemateAgent {
   }
 
   /**
-   * Complete a lesson for a user
+   * Mark a lesson as complete for a user
    * @param {string} userId User ID
    * @param {string} lessonId Lesson ID
-   * @param {number} score Score (0-100)
    * @returns {Object} Updated learning progress
    */
-  completeLesson(userId, lessonId, score = 100) {
+  async markLessonComplete(userId, lessonId) {
     try {
-      const user = this.getUser(userId);
+      const user = await this.getUser(userId);
       
-      // Get lesson details (in a real implementation, this would come from a database)
-      const lesson = {
+      // Logic to fetch the lesson would go here
+      // For now, use a mock lesson
+      const mockLesson = {
         id: lessonId,
         name: `Lesson ${lessonId}`,
-        topic: lessonId.split('-')[1], // Extract topic from lesson ID
-        score
+        topic: 'infrastructure', // Default topic
+        score: 85,
+        scoreIncrement: 15
       };
       
-      // Record lesson completion
-      const updatedProgress = user.completeLesson(lesson);
+      // Mark lesson as complete
+      const updatedProgress = user.completeLesson(mockLesson);
       
-      // Update user
-      this.users.set(userId, user);
+      // Save the updated user
+      await user.save();
       
       return updatedProgress;
     } catch (error) {
-      console.error(`Error completing lesson for user ${userId}:`, error);
+      console.error(`Error marking lesson complete for user ${userId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Analyze a project for a user
+   * Analyze a project for a specific user
    * @param {string} userId User ID
    * @param {string} projectId Project ID
    * @returns {Object} Analysis results
    */
-  analyzeProject(userId, projectId) {
+  async analyzeProjectForUser(userId, projectId) {
     try {
-      const user = this.getUser(userId);
-      const project = this.getProject(projectId);
+      const [user, project] = await Promise.all([
+        this.getUser(userId),
+        this.getProject(projectId)
+      ]);
       
-      // Get user risk profile
-      const userRiskTolerance = user.riskProfile.toleranceScore;
+      // Compare user risk profile with project risk
+      const riskMatch = this.calculateRiskMatch(user.riskProfile, project.risk);
       
-      // Compare project risk to user tolerance
-      const riskAlignment = {
-        projectRisk: project.risk.overallScore,
-        userTolerance: userRiskTolerance,
-        difference: project.risk.overallScore - userRiskTolerance,
-        aligned: Math.abs(project.risk.overallScore - userRiskTolerance) <= 20
-      };
+      // Calculate suitability score
+      const suitabilityScore = this.calculateSuitabilityScore(user, project);
       
-      // Check ESG alignment with user preferences
-      const esgAlignment = {
-        environmentalAlignment: true, // In a real implementation, this would be calculated
-        socialAlignment: true,
-        governanceAlignment: true,
-        overallAlignment: true
-      };
+      // Personalized recommendations
+      const recommendations = this.generatePersonalizedRecommendations(user, project);
       
-      // Check project compliance
-      const compliant = project.checkCompliance();
-      
-      // Get sentiment data
-      const sentiment = project.sentiment;
-      
-      // Create analysis result
-      const analysis = {
+      return {
+        userId,
         projectId,
         projectName: project.name,
-        tokenId: project.tokenId,
-        riskAnalysis: {
-          score: project.risk.overallScore,
-          regulatoryRisk: project.risk.regulatoryRisk,
-          executionRisk: project.risk.executionRisk,
-          marketRisk: project.risk.marketRisk,
-          politicalRisk: project.risk.politicalRisk,
-          environmentalRisk: project.risk.environmentalRisk
-        },
-        financialAnalysis: {
-          expectedReturn: project.financials.expectedReturn,
-          maturityPeriod: project.financials.maturityPeriod,
-          governmentBacked: project.financials.governmentBacked,
-          fundingStatus: project.financials.fundingSecured / project.financials.totalBudget
-        },
-        esgAnalysis: {
-          environmentalImpact: project.esgMetrics.environmentalImpact,
-          carbonReduction: project.esgMetrics.carbonReduction,
-          socialBenefit: project.esgMetrics.socialBenefit,
-          jobsCreated: project.esgMetrics.jobsCreated,
-          governanceRating: project.esgMetrics.governanceRating,
-          sustainabilityScore: project.esgMetrics.sustainabilityScore
-        },
-        regulatoryAnalysis: {
-          compliant,
-          regulator: project.regulatory.regulator,
-          lastCheck: project.regulatory.lastComplianceCheck
-        },
-        sentimentAnalysis: sentiment,
-        userAlignment: {
-          risk: riskAlignment,
-          esg: esgAlignment
-        },
+        riskMatch,
+        suitabilityScore,
+        recommendations,
         timestamp: new Date().toISOString()
       };
-      
-      return analysis;
     } catch (error) {
       console.error(`Error analyzing project ${projectId} for user ${userId}:`, error);
       throw error;
@@ -391,278 +396,432 @@ class StakemateAgent {
   }
 
   /**
-   * Generate investment recommendation for a user
-   * @param {string} userId User ID
-   * @param {Array} projectIds Array of project IDs to consider
-   * @returns {Object} Recommendation
+   * Calculate risk match between user profile and project
+   * @param {Object} userRiskProfile User risk profile
+   * @param {Object} projectRisk Project risk assessment
+   * @returns {Object} Risk match assessment
    */
-  async generateRecommendation(userId, projectIds) {
+  calculateRiskMatch(userRiskProfile, projectRisk) {
+    // Convert user risk tolerance to a numerical value
+    const toleranceMap = {
+      conservative: 30,
+      moderate: 60,
+      aggressive: 90
+    };
+    
+    const userRiskValue = userRiskProfile.toleranceScore || 
+      toleranceMap[userRiskProfile.tolerance] || 50;
+    
+    const projectRiskValue = projectRisk.overallScore;
+    
+    // Calculate the difference (how well they match)
+    const diff = Math.abs(userRiskValue - projectRiskValue);
+    
+    // Determine match level
+    let matchLevel;
+    if (diff <= 10) {
+      matchLevel = 'excellent';
+    } else if (diff <= 20) {
+      matchLevel = 'good';
+    } else if (diff <= 30) {
+      matchLevel = 'fair';
+    } else {
+      matchLevel = 'poor';
+    }
+    
+    // Determine if the project is too risky or too safe for the user
+    let riskAssessment;
+    if (projectRiskValue > userRiskValue + 15) {
+      riskAssessment = 'Project may be too risky for this investor';
+    } else if (projectRiskValue < userRiskValue - 15) {
+      riskAssessment = 'Project may be too conservative for this investor';
+    } else {
+      riskAssessment = 'Project risk aligns with investor profile';
+    }
+    
+    return {
+      matchLevel,
+      userRiskValue,
+      projectRiskValue,
+      difference: diff,
+      riskAssessment
+    };
+  }
+
+  /**
+   * Calculate suitability score for a project based on user profile
+   * @param {Object} user User
+   * @param {Object} project Project
+   * @returns {Object} Suitability score and factors
+   */
+  calculateSuitabilityScore(user, project) {
+    // Base score starts at 50
+    let score = 50;
+    const factors = [];
+    
+    // Risk match (up to +/- 25 points)
+    const riskMatch = this.calculateRiskMatch(user.riskProfile, project.risk);
+    if (riskMatch.matchLevel === 'excellent') {
+      score += 25;
+      factors.push({ factor: 'Risk Profile Match', impact: 25, description: 'Excellent risk profile alignment' });
+    } else if (riskMatch.matchLevel === 'good') {
+      score += 15;
+      factors.push({ factor: 'Risk Profile Match', impact: 15, description: 'Good risk profile alignment' });
+    } else if (riskMatch.matchLevel === 'fair') {
+      score += 5;
+      factors.push({ factor: 'Risk Profile Match', impact: 5, description: 'Fair risk profile alignment' });
+    } else {
+      score -= 15;
+      factors.push({ factor: 'Risk Profile Match', impact: -15, description: 'Poor risk profile alignment' });
+    }
+    
+    // Investment goals alignment (up to +15 points)
+    if (user.riskProfile.investmentGoals && user.riskProfile.investmentGoals.length > 0) {
+      // Check if project type aligns with any of the user's investment goals
+      const goalAlignment = user.riskProfile.investmentGoals.some(
+        goal => goal.toLowerCase().includes(project.type.toLowerCase()) ||
+          project.type.toLowerCase().includes(goal.toLowerCase())
+      );
+      
+      if (goalAlignment) {
+        score += 15;
+        factors.push({ factor: 'Investment Goal Alignment', impact: 15, description: 'Project aligns with investment goals' });
+      }
+    }
+    
+    // Investment amount threshold (up to -20 points)
+    const minInvestment = project.investmentMetrics.minInvestmentAmount;
+    const maxInvestment = user.preferences.maxInvestmentPerProject;
+    
+    if (maxInvestment > 0 && minInvestment > maxInvestment) {
+      score -= 20;
+      factors.push({ factor: 'Investment Amount', impact: -20, description: 'Minimum investment exceeds user threshold' });
+    }
+    
+    // Portfolio diversification (up to +10 points)
+    const userInvestmentTypes = new Set(
+      user.portfolio.holdings.map(holding => holding.projectType)
+    );
+    
+    if (!userInvestmentTypes.has(project.type)) {
+      score += 10;
+      factors.push({ factor: 'Portfolio Diversification', impact: 10, description: 'Adds a new project type to portfolio' });
+    }
+    
+    // Cap the score between 0 and 100
+    score = Math.max(0, Math.min(100, score));
+    
+    return {
+      score,
+      factors,
+      recommendation: this.getSuitabilityRecommendation(score)
+    };
+  }
+
+  /**
+   * Get a suitability recommendation based on score
+   * @param {number} score Suitability score
+   * @returns {string} Recommendation
+   */
+  getSuitabilityRecommendation(score) {
+    if (score >= 80) {
+      return 'Highly Recommended';
+    } else if (score >= 65) {
+      return 'Recommended';
+    } else if (score >= 50) {
+      return 'Consider with Caution';
+    } else if (score >= 30) {
+      return 'Not Recommended';
+    } else {
+      return 'Strongly Not Recommended';
+    }
+  }
+
+  /**
+   * Generate personalized recommendations for a user based on a project
+   * @param {Object} user User
+   * @param {Object} project Project
+   * @returns {Array} Recommendations
+   */
+  generatePersonalizedRecommendations(user, project) {
+    const recommendations = [];
+    
+    // Recommendation based on risk profile
+    const riskMatch = this.calculateRiskMatch(user.riskProfile, project.risk);
+    if (riskMatch.matchLevel === 'poor') {
+      recommendations.push({
+        type: 'risk',
+        title: 'Risk Mismatch',
+        description: riskMatch.riskAssessment,
+        action: riskMatch.projectRiskValue > riskMatch.userRiskValue ? 
+          'Consider more conservative investments' : 'Consider higher-risk investments for better returns'
+      });
+    }
+    
+    // Recommendation based on investment amount
+    const minInvestment = project.investmentMetrics.minInvestmentAmount;
+    if (minInvestment > 1000) {
+      recommendations.push({
+        type: 'investment',
+        title: 'Investment Strategy',
+        description: 'This project has a significant minimum investment',
+        action: 'Consider starting with a smaller position to test performance'
+      });
+    }
+    
+    // Recommendation based on project type and portfolio
+    const hasProjectType = user.portfolio.holdings.some(
+      holding => holding.projectType === project.type
+    );
+    
+    if (hasProjectType) {
+      recommendations.push({
+        type: 'diversification',
+        title: 'Portfolio Concentration',
+        description: `You already have investments in ${project.type} projects`,
+        action: 'Consider diversifying into other project types'
+      });
+    }
+    
+    // Add a general education recommendation if user knowledge score is low
+    const knowledgeScore = user.learningProgress.knowledgeScore[project.type.toLowerCase()] || 0;
+    if (knowledgeScore < 50) {
+      recommendations.push({
+        type: 'education',
+        title: 'Knowledge Gap',
+        description: `Your knowledge of ${project.type} infrastructure is limited`,
+        action: `Complete our ${project.type} basics course before investing`
+      });
+    }
+    
+    return recommendations;
+  }
+
+  /**
+   * Generate investment recommendations for a user
+   * @param {string} userId User ID
+   * @param {Array} projectIds Optional array of project IDs to consider
+   * @returns {Object} Recommendations
+   */
+  async generateRecommendations(userId, projectIds = []) {
     try {
-      const user = this.getUser(userId);
+      const user = await this.getUser(userId);
       
-      // Get projects
-      const projects = projectIds.map(id => this.getProject(id));
+      // Get projects to consider
+      let projects;
+      if (projectIds && projectIds.length > 0) {
+        // Get specific projects
+        const projectPromises = projectIds.map(id => this.getProject(id));
+        projects = await Promise.all(projectPromises);
+      } else {
+        // Get all projects
+        projects = await this.listProjects();
+      }
       
-      // Get recommended projects based on user profile
-      const recommendedProjects = user.getRecommendedProjects(projects);
+      // Calculate suitability for each project
+      const projectRecommendations = await Promise.all(
+        projects.map(async project => {
+          const suitability = this.calculateSuitabilityScore(user, project);
+          return {
+            projectId: project.id,
+            projectName: project.name,
+            projectType: project.type,
+            tokenId: project.tokenId,
+            location: project.location,
+            expectedReturn: project.financials.expectedReturn,
+            minInvestment: project.investmentMetrics.minInvestmentAmount,
+            suitabilityScore: suitability.score,
+            recommendation: suitability.recommendation,
+            key_factors: suitability.factors
+          };
+        })
+      );
       
-      // Create allocation percentages
-      const allocations = this.calculateAllocations(recommendedProjects, user);
+      // Sort by suitability score (descending)
+      projectRecommendations.sort((a, b) => b.suitabilityScore - a.suitabilityScore);
       
-      // Create recommendation
-      const recommendation = {
+      // Store recommendations for this user
+      const recommendationRecord = {
         userId,
         timestamp: new Date().toISOString(),
-        projects: recommendedProjects.map(project => ({
-          projectId: project.id,
-          projectName: project.name,
-          projectType: project.type,
-          tokenId: project.tokenId,
-          allocation: allocations[project.id] || 0,
-          riskScore: project.risk.overallScore,
-          expectedReturn: project.financials.expectedReturn
-        })),
-        explanation: {
-          riskBased: `This allocation balances risk across different project types, aligning with your ${user.riskProfile.tolerance} risk tolerance.`,
-          goalBased: `Projects were selected to align with your investment goals: ${user.riskProfile.investmentGoals.join(', ')}.`,
-          timeHorizon: `The recommended allocation considers your ${user.riskProfile.timeHorizon} time horizon.`
-        }
+        projects: projectRecommendations
       };
       
-      // Store recommendation
-      this.recommendations.set(userId, recommendation);
+      this.recommendations.set(userId, recommendationRecord);
       
-      // Record recommendation on Hedera
-      await this.recordRecommendation(userId, recommendation);
+      // Record recommendations on Hedera
+      if (this.recommendationTopicId) {
+        await this.hederaKit.submitRecommendation(this.recommendationTopicId, recommendationRecord);
+      }
       
-      return recommendation;
+      return recommendationRecord;
     } catch (error) {
-      console.error(`Error generating recommendation for user ${userId}:`, error);
+      console.error(`Error generating recommendations for user ${userId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Calculate allocation percentages for recommended projects
-   * @param {Array} projects Array of projects
-   * @param {Object} user User object
-   * @returns {Object} Allocation percentages by project ID
-   */
-  calculateAllocations(projects, user) {
-    // This would implement a more sophisticated allocation algorithm
-    // For now, use a simple allocation based on project risk and user tolerance
-    const allocations = {};
-    
-    if (projects.length === 0) {
-      return allocations;
-    }
-    
-    // Get user risk tolerance
-    const userTolerance = user.riskProfile.toleranceScore;
-    
-    // Calculate risk-weighted allocations
-    const totalRiskDiff = projects.reduce((sum, project) => {
-      return sum + Math.abs(project.risk.overallScore - userTolerance);
-    }, 0);
-    
-    if (totalRiskDiff === 0) {
-      // Equal allocation if all projects have the same risk difference
-      const equalAllocation = 100 / projects.length;
-      projects.forEach(project => {
-        allocations[project.id] = Math.round(equalAllocation);
-      });
-    } else {
-      // Allocate more to projects closer to user's risk tolerance
-      let remainingPercent = 100;
-      projects.forEach((project, index) => {
-        if (index === projects.length - 1) {
-          // Last project gets the remainder to ensure sum is 100%
-          allocations[project.id] = remainingPercent;
-        } else {
-          // Calculate allocation based on risk alignment
-          const riskDiff = Math.abs(project.risk.overallScore - userTolerance);
-          const riskWeight = 1 - (riskDiff / totalRiskDiff);
-          const allocation = Math.round(riskWeight * 100 / projects.length);
-          allocations[project.id] = allocation;
-          remainingPercent -= allocation;
-        }
-      });
-    }
-    
-    return allocations;
-  }
-
-  /**
-   * Record recommendation on Hedera
-   * @param {string} userId User ID
-   * @param {Object} recommendation Recommendation data
-   * @returns {Object} Transaction result
-   */
-  async recordRecommendation(userId, recommendation) {
-    try {
-      // Create recommendation record for Hedera
-      const record = {
-        userId,
-        timestamp: recommendation.timestamp,
-        projects: recommendation.projects.map(p => ({
-          projectTokenId: p.tokenId,
-          allocation: p.allocation
-        })),
-        type: 'INVESTMENT_RECOMMENDATION'
-      };
-      
-      // Record on Hedera
-      const result = await this.hederaKit.recordRecommendation({
-        userId,
-        projectTokenId: recommendation.projects.map(p => p.tokenId).join(','),
-        recommendationData: JSON.stringify(record),
-        topicId: this.recommendationTopicId
-      });
-      
-      return result;
-    } catch (error) {
-      console.error(`Error recording recommendation for user ${userId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Simulate investment for a user
+   * Simulate an investment for a user
    * @param {string} userId User ID
    * @param {string} projectId Project ID
    * @param {number} amount Investment amount
+   * @param {number} duration Investment duration in months
    * @returns {Object} Simulation results
    */
-  async simulateInvestment(userId, projectId, amount) {
+  async simulateInvestment(userId, projectId, amount, duration = 36) {
     try {
-      const user = this.getUser(userId);
-      const project = this.getProject(projectId);
+      const [user, project] = await Promise.all([
+        this.getUser(userId),
+        this.getProject(projectId)
+      ]);
       
       // Check if amount meets minimum
       if (amount < project.investmentMetrics.minInvestmentAmount) {
         throw new Error(`Minimum investment amount is ${project.investmentMetrics.minInvestmentAmount}`);
       }
       
-      // Calculate number of tokens
-      const price = 1; // In a real implementation, this would be the current token price
-      const units = amount / price;
+      // Calculate token amount based on current price
+      const tokenPrice = 50; // Placeholder for actual token price logic
+      const tokenAmount = amount / tokenPrice;
       
-      // Create investment data
-      const investmentData = {
+      // Generate projected returns
+      const returnRate = project.financials.expectedReturn / 100; // Convert percentage to decimal
+      
+      // Calculate monthly compounding return
+      const monthlyRate = returnRate / 12;
+      let projectedValue = amount;
+      
+      const monthlyProjections = [];
+      for (let month = 1; month <= duration; month++) {
+        // Apply monthly return
+        projectedValue *= (1 + monthlyRate);
+        
+        // Record monthly projection
+        monthlyProjections.push({
+          month,
+          value: projectedValue
+        });
+      }
+      
+      // Calculate final values
+      const finalValue = projectedValue;
+      const totalReturn = finalValue - amount;
+      const totalReturnPercentage = (totalReturn / amount) * 100;
+      
+      // Create investment record
+      const investmentRecord = {
         projectId,
         projectName: project.name,
         projectType: project.type,
         tokenId: project.tokenId,
         amount,
-        units,
-        price,
-        type: 'simulated'
+        units: tokenAmount,
+        price: tokenPrice,
+        timestamp: new Date().toISOString(),
+        type: 'simulated',
+        status: 'completed'
       };
       
-      // Add investment to user portfolio
-      const investment = user.addInvestment(investmentData);
+      // Add to user's investment history
+      user.addInvestment(investmentRecord);
       
-      // Update user
-      this.users.set(userId, user);
+      // Save updated user
+      await user.save();
+      
+      // Create simulation result
+      const simulationResult = {
+        userId,
+        projectId,
+        amount,
+        tokenAmount,
+        tokenPrice,
+        duration,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + duration * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        finalValue,
+        totalReturn,
+        totalReturnPercentage,
+        monthlyProjections,
+        investmentRecord
+      };
       
       // Record simulation on Hedera
-      const result = await this.hederaKit.simulateInvestment({
-        userId,
-        tokenId: project.tokenId,
-        amount,
-        units,
-        topicId: this.simulationTopicId
+      if (this.simulationTopicId) {
+        await this.hederaKit.simulateInvestment(this.simulationTopicId, simulationResult);
+      }
+      
+      return simulationResult;
+    } catch (error) {
+      console.error(`Error simulating investment for user ${userId} in project ${projectId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create demo data for testing
+   */
+  async createDemoData() {
+    try {
+      console.log('Creating demo data...');
+      
+      // Create a demo user
+      const demoUser = await this.createUser({
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+254712345678',
+        country: 'Kenya',
+        city: 'Nairobi',
+        riskTolerance: 'moderate',
+        riskToleranceScore: 60,
+        investmentGoals: ['growth', 'sustainability', 'infrastructure']
       });
       
-      // Return simulation results
+      // Create a demo infrastructure project
+      const demoProject = await this.createProject({
+        name: 'Nairobi Commuter Rail',
+        symbol: 'NCR',
+        description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
+        location: 'Nairobi, Kenya',
+        type: 'Transportation',
+        website: 'https://example.com/nairobi-rail',
+        totalBudget: 45000000,
+        fundingSecured: 28000000,
+        expectedReturn: 8.5,
+        environmentalImpact: 'positive',
+        carbonReduction: 25000,
+        jobsCreated: 1200,
+        minInvestmentAmount: 5000
+      });
+      
+      // Create a second demo project
+      const demoProject2 = await this.createProject({
+        name: 'Lake Turkana Wind Power',
+        symbol: 'LTWP',
+        description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
+        location: 'Turkana, Kenya',
+        type: 'Energy',
+        website: 'https://example.com/turkana-wind',
+        totalBudget: 85000000,
+        fundingSecured: 62000000,
+        expectedReturn: 12.8,
+        environmentalImpact: 'very positive',
+        carbonReduction: 75000,
+        jobsCreated: 800,
+        minInvestmentAmount: 10000
+      });
+      
+      // Simulate an investment
+      await this.simulateInvestment(demoUser.id, demoProject.id, 10000);
+      
+      console.log('Demo data created successfully');
+      
       return {
-        investment,
-        portfolio: user.portfolio,
-        transaction: result
+        user: demoUser,
+        projects: [demoProject, demoProject2]
       };
     } catch (error) {
-      console.error(`Error simulating investment for user ${userId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check compliance of a project
-   * @param {string} projectId Project ID
-   * @returns {Object} Compliance check results
-   */
-  checkProjectCompliance(projectId) {
-    try {
-      const project = this.getProject(projectId);
-      
-      // Check compliance
-      const compliant = project.checkCompliance();
-      
-      // Return compliance check results
-      return {
-        projectId,
-        projectName: project.name,
-        tokenId: project.tokenId,
-        compliant,
-        regulator: project.regulatory.regulator,
-        lastCheck: project.regulatory.lastComplianceCheck,
-        licenses: project.regulatory.licenses
-      };
-    } catch (error) {
-      console.error(`Error checking compliance for project ${projectId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get project sentiment data
-   * @param {string} projectId Project ID
-   * @returns {Object} Sentiment data
-   */
-  getProjectSentiment(projectId) {
-    try {
-      const project = this.getProject(projectId);
-      
-      // Get current sentiment
-      const sentiment = project.sentiment;
-      
-      // In a real implementation, this would fetch live sentiment data
-      // For now, return the stored sentiment
-      return {
-        projectId,
-        projectName: project.name,
-        tokenId: project.tokenId,
-        sentiment,
-        timestamp: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error(`Error getting sentiment for project ${projectId}:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update project sentiment data
-   * @param {string} projectId Project ID
-   * @param {Object} sentimentData Sentiment data
-   * @returns {Object} Updated sentiment
-   */
-  async updateProjectSentiment(projectId, sentimentData) {
-    try {
-      const project = this.getProject(projectId);
-      
-      // Update sentiment
-      const updatedSentiment = project.updateSentiment(sentimentData);
-      
-      // Update project
-      this.projects.set(projectId, project);
-      
-      // Record update on Hedera
-      await this.recordProjectUpdate(projectId, { sentiment: updatedSentiment });
-      
-      return updatedSentiment;
-    } catch (error) {
-      console.error(`Error updating sentiment for project ${projectId}:`, error);
+      console.error('Error creating demo data:', error);
       throw error;
     }
   }

@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { connectDB } = require('./db/database');
 const StakemateAgent = require('./agent/StakemateAgent');
 const SentimentService = require('./services/SentimentService');
 const ComplianceService = require('./services/ComplianceService');
@@ -40,7 +41,8 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     elizaStatus: process.env.ELIZA_API_URL ? 'configured' : 'not configured',
-    hederaClientStatus: require('./hedera/HederaClient').isConfigured ? 'configured' : 'not configured'
+    hederaClientStatus: require('./hedera/HederaClient').isConfigured ? 'configured' : 'not configured',
+    dbStatus: require('mongoose').connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
@@ -704,111 +706,34 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Stakemate API running on port ${PORT}`);
-  
-  // Initialize demo data for testing if needed
-  if (process.env.NODE_ENV === 'development') {
-    initializeDemoData();
-  }
-});
-
-/**
- * Initialize demo data for testing
- */
-async function initializeDemoData() {
+// Import and connect to MongoDB, then start the server
+const startServer = async () => {
   try {
-    console.log('Initializing demo data...');
+    // Connect to MongoDB
+    await connectDB();
     
-    // Create demo user
-    const demoUser = stakemateAgent.createUser({
-      name: 'John Doe',
-      email: 'john@example.com',
-      phoneNumber: '+254712345678',
-      city: 'Nairobi',
-      riskTolerance: 'moderate',
-      investmentGoals: ['transportation', 'energy', 'water']
-    });
-    
-    console.log(`Created demo user: ${demoUser.id}`);
-    
-    // Create demo projects
-    const projects = [
-      {
-        name: 'Nairobi Commuter Rail',
-        symbol: 'NCR',
-        description: 'Expansion of commuter rail network in Nairobi to reduce traffic congestion',
-        location: 'Nairobi',
-        type: 'transportation',
-        website: 'https://nairobicommuterrail.co.ke',
-        totalBudget: 15000000,
-        fundingSecured: 9000000,
-        expectedReturn: 8.5,
-        maturityPeriod: 10,
-        governmentBacked: true,
-        startDate: '2023-01-01',
-        estimatedCompletionDate: '2026-12-31',
-        currentPhase: 'construction',
-        environmentalImpact: 'positive',
-        carbonReduction: 50000,
-        socialBenefit: 'high',
-        jobsCreated: 2500,
-        riskScore: 55
-      },
-      {
-        name: 'Garissa Solar Farm',
-        symbol: 'GSF',
-        description: 'Solar energy project in Garissa county to provide renewable energy',
-        location: 'Garissa',
-        type: 'energy',
-        website: 'https://garissasolar.co.ke',
-        totalBudget: 8000000,
-        fundingSecured: 7000000,
-        expectedReturn: 7.2,
-        maturityPeriod: 15,
-        governmentBacked: true,
-        startDate: '2022-06-01',
-        estimatedCompletionDate: '2024-08-31',
-        currentPhase: 'final construction',
-        environmentalImpact: 'very positive',
-        carbonReduction: 100000,
-        socialBenefit: 'medium',
-        jobsCreated: 800,
-        riskScore: 40
-      },
-      {
-        name: 'Mombasa Port Expansion',
-        symbol: 'MPE',
-        description: 'Expansion of Mombasa port facilities to increase cargo handling capacity',
-        location: 'Mombasa',
-        type: 'infrastructure',
-        website: 'https://mombasaport.co.ke/expansion',
-        totalBudget: 25000000,
-        fundingSecured: 15000000,
-        expectedReturn: 9.1,
-        maturityPeriod: 12,
-        governmentBacked: true,
-        startDate: '2023-03-15',
-        estimatedCompletionDate: '2028-06-30',
-        currentPhase: 'early construction',
-        environmentalImpact: 'medium',
-        carbonReduction: 10000,
-        socialBenefit: 'high',
-        jobsCreated: 5000,
-        riskScore: 65
+    // Start server
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      
+      // Initialize demo data if in development
+      if (process.env.NODE_ENV === 'development') {
+        setTimeout(async () => {
+          try {
+            await stakemateAgent.createDemoData();
+            console.log('Demo data created successfully');
+          } catch (error) {
+            console.error('Error creating demo data:', error);
+          }
+        }, 2000);
       }
-    ];
-    
-    for (const projectData of projects) {
-      const project = await stakemateAgent.createProject(projectData);
-      console.log(`Created demo project: ${project.name} (${project.id})`);
-    }
-    
-    console.log('Demo data initialization complete');
+    });
   } catch (error) {
-    console.error('Error initializing demo data:', error);
+    console.error('Failed to start server:', error);
+    process.exit(1);
   }
-}
+};
+
+startServer();
 
 module.exports = app; 

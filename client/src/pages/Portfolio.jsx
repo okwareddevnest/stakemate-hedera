@@ -16,6 +16,7 @@ import {
   FaDownload,
   FaExchangeAlt
 } from 'react-icons/fa';
+import apiService from '../services/api';
 
 // Import chart components
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
@@ -25,266 +26,336 @@ import { Doughnut, Line } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title);
 
 const Portfolio = () => {
-  // Sample user portfolio data
+  // State for portfolio data
   const [portfolio, setPortfolio] = useState({
-    totalValue: 46500,
-    initialInvestment: 42000,
-    changeAmount: 4500,
-    changePercent: 10.71,
-    tokenBalance: {
-      NCR: 200,
-      LTW: 300,
-      MWS: 150,
-      NSC: 75,
-      AHK: 110,
-    }
+    totalValue: 0,
+    initialInvestment: 0,
+    changeAmount: 0,
+    changePercent: 0,
+    tokenBalance: {}
   });
+  
+  const [investments, setInvestments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [accountData, setAccountData] = useState(null);
+  const [hederaAccount, setHederaAccount] = useState(null);
 
-  // Sample investments data
-  const [investments, setInvestments] = useState([
-    {
-      id: 1,
-      projectId: 1,
-      name: 'Nairobi Commuter Rail',
-      type: 'Transportation',
-      location: 'Nairobi, Kenya',
-      investmentDate: '2023-12-10',
-      amount: 10000,
-      currentValue: 11200,
-      changePercent: 12.0,
-      tokens: 200,
-      tokenSymbol: 'NCR',
-      tokenPrice: 56,
-    },
-    {
-      id: 2,
-      projectId: 2,
-      name: 'Lake Turkana Wind Power',
-      type: 'Energy',
-      location: 'Turkana, Kenya',
-      investmentDate: '2024-01-05',
-      amount: 15000,
-      currentValue: 17100,
-      changePercent: 14.0,
-      tokens: 300,
-      tokenSymbol: 'LTW',
-      tokenPrice: 57,
-    },
-    {
-      id: 3,
-      projectId: 3,
-      name: 'Mombasa Water Supply',
-      type: 'Water',
-      location: 'Mombasa, Kenya',
-      investmentDate: '2024-02-18',
-      amount: 7500,
-      currentValue: 8250,
-      changePercent: 10.0,
-      tokens: 150,
-      tokenSymbol: 'MWS',
-      tokenPrice: 55,
-    },
-    {
-      id: 4,
-      projectId: 4,
-      name: 'Nakuru Smart City Initiative',
-      type: 'Digital',
-      location: 'Nakuru, Kenya',
-      investmentDate: '2024-03-22',
-      amount: 4500,
-      currentValue: 4275,
-      changePercent: -5.0,
-      tokens: 75,
-      tokenSymbol: 'NSC',
-      tokenPrice: 57,
-    },
-    {
-      id: 5,
-      projectId: 5,
-      name: 'Affordable Housing Kisumu',
-      type: 'Social',
-      location: 'Kisumu, Kenya',
-      investmentDate: '2024-04-15',
-      amount: 5000,
-      currentValue: 5675,
-      changePercent: 13.5,
-      tokens: 110,
-      tokenSymbol: 'AHK',
-      tokenPrice: 51.59,
-    }
-  ]);
+  // Fetch portfolio data
+  useEffect(() => {
+    const fetchPortfolioData = async () => {
+      setIsLoading(true);
+      try {
+        // In a real app, you would use the actual user ID from authentication
+        const userId = 'user-1743079616219'; // Demo user ID
+        
+        // Get Hedera status first
+        const statusResponse = await apiService.getStatus();
+        if (statusResponse?.success && statusResponse.data.accountId) {
+          const hederaAccountId = statusResponse.data.accountId;
+          setHederaAccount(hederaAccountId);
+          
+          // Get account balance
+          const balanceResponse = await apiService.getAccountBalance(hederaAccountId);
+          if (balanceResponse?.success) {
+            // Parse the tokens JSON string into an object
+            const tokensData = JSON.parse(balanceResponse.data.tokens || '{}');
+            const hbarBalance = parseFloat(balanceResponse.data.hbars.split(' ')[0]);
+            
+            // Get information about each token
+            const tokenInfoPromises = Object.keys(tokensData).map(async tokenId => {
+              try {
+                const tokenInfo = await apiService.getTokenInfo(tokenId);
+                if (tokenInfo?.success) {
+                  return {
+                    tokenId,
+                    balance: tokensData[tokenId].low || 0,
+                    ...tokenInfo.data
+                  };
+                }
+                return null;
+              } catch (err) {
+                console.error(`Error fetching token info for ${tokenId}:`, err);
+                return null;
+              }
+            });
+            
+            const tokenInfoResults = await Promise.all(tokenInfoPromises);
+            const validTokenInfo = tokenInfoResults.filter(t => t !== null);
+            
+            // Convert to the format our UI expects
+            const tokenBalances = {};
+            const investments = [];
+            
+            validTokenInfo.forEach(token => {
+              // Add to token balances
+              tokenBalances[token.symbol] = token.balance;
+              
+              // Add to investments array
+              investments.push({
+                id: token.tokenId,
+                project: token.name,
+                symbol: token.symbol,
+                tokenId: token.tokenId,
+                amount: token.balance,
+                tokenValue: 50, // Mock data for now
+                date: new Date().toISOString().split('T')[0],
+                totalValue: token.balance * 50, // Mock calculation
+                changePercent: 3.2 // Mock data
+              });
+            });
+            
+            // Calculate portfolio metrics
+            const totalValue = hbarBalance + Object.values(investments).reduce((sum, inv) => sum + inv.totalValue, 0);
+            const initialInvestment = totalValue * 0.9; // Mock data assuming 10% growth
+            const changeAmount = totalValue - initialInvestment;
+            const changePercent = (changeAmount / initialInvestment) * 100;
+            
+            setPortfolio({
+              totalValue,
+              initialInvestment,
+              changeAmount,
+              changePercent,
+              tokenBalance: tokenBalances
+            });
+            
+            setInvestments(investments);
+            setAccountData(balanceResponse.data);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching portfolio data:', err);
+        setError(err.message || 'Failed to load portfolio data');
+        
+        // Fallback to sample data
+        setPortfolio({
+          totalValue: 46500,
+          initialInvestment: 42000,
+          changeAmount: 4500,
+          changePercent: 10.71,
+          tokenBalance: {
+            NCR: 200,
+            LTW: 300,
+            MWS: 150,
+            NSC: 75,
+            AHK: 110,
+          }
+        });
+        
+        setInvestments([
+          {
+            id: 1,
+            project: 'Nairobi Commuter Rail',
+            symbol: 'NCR',
+            tokenId: '0.0.5783117',
+            amount: 200,
+            tokenValue: 50,
+            date: '2024-01-15',
+            totalValue: 10000,
+            changePercent: 12.5
+          },
+          {
+            id: 2,
+            project: 'Lake Turkana Wind Power',
+            symbol: 'LTW',
+            tokenId: '0.0.5783118',
+            amount: 300,
+            tokenValue: 65,
+            date: '2024-02-10',
+            totalValue: 19500,
+            changePercent: 8.3
+          },
+          {
+            id: 3,
+            project: 'Mombasa Water Supply',
+            symbol: 'MWS',
+            tokenId: '0.0.5783119',
+            amount: 150,
+            tokenValue: 45,
+            date: '2024-03-05',
+            totalValue: 6750,
+            changePercent: -2.1
+          },
+          {
+            id: 4,
+            project: 'Nakuru Smart City',
+            symbol: 'NSC',
+            tokenId: '0.0.5783120',
+            amount: 75,
+            tokenValue: 80,
+            date: '2024-03-20',
+            totalValue: 6000,
+            changePercent: 15.7
+          },
+          {
+            id: 5,
+            project: 'Affordable Housing Kisumu',
+            symbol: 'AHK',
+            tokenId: '0.0.5783121',
+            amount: 110,
+            tokenValue: 38,
+            date: '2024-04-02',
+            totalValue: 4180,
+            changePercent: 5.4
+          }
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPortfolioData();
+  }, []);
 
-  // Get project type icon
-  const getProjectIcon = (type) => {
-    switch (type) {
-      case 'Transportation':
-        return <FaRoad className="text-primary" />;
-      case 'Energy':
-        return <FaLightbulb className="text-yellow-500" />;
-      case 'Water':
-        return <FaWater className="text-blue-500" />;
-      case 'Digital':
-        return <FaNetworkWired className="text-purple-500" />;
-      case 'Social':
-        return <FaBuilding className="text-orange-500" />;
-      case 'Environmental':
-        return <FaLeaf className="text-secondary" />;
-      default:
-        return <FaBuilding className="text-gray-500" />;
-    }
-  };
-
-  // Chart data for portfolio allocation
+  // Chart data - portfolio allocation
   const allocationData = {
-    labels: investments.map(inv => inv.name),
+    labels: Object.keys(portfolio.tokenBalance),
     datasets: [
       {
-        data: investments.map(inv => inv.currentValue),
+        data: Object.values(portfolio.tokenBalance),
         backgroundColor: [
-          '#3B82F6', // primary - Transport
-          '#F59E0B', // yellow - Energy
-          '#60A5FA', // blue-400 - Water
-          '#8B5CF6', // purple - Digital
-          '#F97316', // orange - Social
-          '#10B981', // secondary - Environmental
+          '#3b82f6', // blue
+          '#f59e0b', // amber
+          '#10b981', // emerald
+          '#8b5cf6', // violet
+          '#ec4899', // pink
+          '#f43f5e', // rose
+          '#6366f1', // indigo
+          '#14b8a6', // teal
         ],
-        borderWidth: 1,
+        borderWidth: 0,
       },
     ],
   };
 
-  // Chart data for portfolio performance
+  // Chart data - performance over time
   const performanceData = {
-    labels: ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr'],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [
       {
         label: 'Portfolio Value',
-        data: [42000, 42800, 43500, 44800, 45300, 46500],
-        borderColor: '#3B82F6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.4,
-        fill: true,
+        data: [40000, 42000, 41500, 43500, 45000, portfolio.totalValue],
+        fill: false,
+        borderColor: '#3b82f6',
+        tension: 0.1,
       },
     ],
   };
+  
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">My Portfolio</h1>
-          <p className="text-gray-600">Overview of your infrastructure investments</p>
-        </div>
-        <div className="mt-4 md:mt-0 flex gap-2">
-          <button className="btn btn-outline flex items-center gap-2">
-            <FaDownload className="h-4 w-4" /> Export Report
-          </button>
-          <Link to="/projects" className="btn btn-primary">
-            Explore Projects
-          </Link>
+    <div className="space-y-8">
+      {/* Portfolio Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">My Portfolio</h1>
+        <p className="text-gray-600">Manage and track your infrastructure investments</p>
+      </div>
+
+      {/* Portfolio Summary Card */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-6">
+          <div className="flex flex-col md:flex-row justify-between">
+            <div>
+              <h2 className="text-lg font-semibold mb-1">Portfolio Overview</h2>
+              <div className="flex items-baseline">
+                <span className="text-3xl font-bold">{portfolio.totalValue.toLocaleString()} ℏ</span>
+                <span className={`ml-2 ${portfolio.changePercent >= 0 ? 'text-green-500' : 'text-red-500'} flex items-center`}>
+                  {portfolio.changePercent >= 0 ? (
+                    <FaArrowUp className="mr-1 h-3 w-3" />
+                  ) : (
+                    <FaArrowDown className="mr-1 h-3 w-3" />
+                  )}
+                  {Math.abs(portfolio.changePercent).toFixed(2)}%
+                </span>
+              </div>
+              <p className="text-gray-500 text-sm mt-1">
+                Initial investment: {portfolio.initialInvestment.toLocaleString()} ℏ
+              </p>
+            </div>
+            
+            {hederaAccount && (
+              <div className="mt-4 md:mt-0">
+                <p className="text-sm font-medium text-gray-700">Hedera Account</p>
+                <p className="text-gray-600 text-sm">{hederaAccount}</p>
+              </div>
+            )}
+            
+            <div className="mt-4 md:mt-0 flex space-x-2">
+              <button className="px-4 py-2 text-sm font-medium text-primary bg-blue-50 rounded-md hover:bg-blue-100 flex items-center">
+                <FaDownload className="mr-2 h-4 w-4" /> Export
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark flex items-center">
+                <FaExchangeAlt className="mr-2 h-4 w-4" /> Transfer
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Portfolio Summary */}
-      <div className="card bg-white p-6">
-        <div className="flex flex-col md:flex-row justify-between mb-4">
-          <div>
-            <h2 className="font-bold text-xl mb-1">Portfolio Summary</h2>
-            <p className="text-gray-600">Last updated: {new Date().toLocaleDateString()}</p>
-          </div>
-          <div className="mt-2 md:mt-0 flex flex-col items-end">
-            <div className="text-2xl font-bold">KES {portfolio.totalValue.toLocaleString()}</div>
-            <div className={`flex items-center ${portfolio.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {portfolio.changePercent >= 0 ? (
-                <FaArrowUp className="mr-1" />
-              ) : (
-                <FaArrowDown className="mr-1" />
-              )}
-              <span>
-                {portfolio.changePercent >= 0 ? '+' : ''}
-                {portfolio.changeAmount.toLocaleString()} ({portfolio.changePercent}%)
-              </span>
+      {/* Token Holdings and Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Investment Performance</h2>
+              <div className="h-72">
+                <Line 
+                  data={performanceData} 
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: false,
+                      }
+                    },
+                    scales: {
+                      y: {
+                        ticks: {
+                          callback: function(value) {
+                            return value.toLocaleString() + ' ℏ';
+                          }
+                        }
+                      }
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold mb-3">Portfolio Allocation</h3>
-            <div className="h-64 flex items-center justify-center">
-              <Doughnut 
-                data={allocationData} 
-                options={{
-                  responsive: true,
-                  plugins: {
-                    legend: {
-                      position: 'bottom',
-                    },
-                    tooltip: {
-                      callbacks: {
-                        label: function(context) {
-                          const value = context.raw;
-                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                          const percentage = ((value / total) * 100).toFixed(1);
-                          return `KES ${value.toLocaleString()} (${percentage}%)`;
+        
+        <div>
+          <div className="bg-white rounded-lg shadow">
+            <div className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Allocation</h2>
+              <div className="h-72 flex items-center justify-center">
+                {Object.keys(portfolio.tokenBalance).length > 0 ? (
+                  <Doughnut 
+                    data={allocationData} 
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
                         }
                       }
-                    }
-                  },
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3">Performance Trend</h3>
-            <div className="h-64">
-              <Line 
-                data={performanceData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false,
-                    },
-                    tooltip: {
-                      callbacks: {
-                        label: function(context) {
-                          return `KES ${context.raw.toLocaleString()}`;
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: false,
-                      ticks: {
-                        callback: function(value) {
-                          return 'KES ' + value.toLocaleString();
-                        }
-                      }
-                    }
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-blue-50 rounded-md">
-          <div className="flex">
-            <FaInfoCircle className="text-blue-500 mt-1 mr-2 flex-shrink-0" />
-            <div>
-              <h4 className="font-semibold text-blue-800">Token Holdings</h4>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-2">
-                {Object.entries(portfolio.tokenBalance).map(([symbol, amount]) => (
-                  <div key={symbol} className="bg-white p-3 rounded-md shadow-sm">
-                    <div className="text-gray-600 text-xs">{symbol} Tokens</div>
-                    <div className="font-bold">{amount}</div>
+                    }}
+                  />
+                ) : (
+                  <div className="text-center text-gray-500">
+                    <p>No investment data available</p>
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -292,108 +363,87 @@ const Portfolio = () => {
       </div>
 
       {/* Investments Table */}
-      <div className="card bg-white p-6 overflow-x-auto">
-        <h2 className="font-bold text-xl mb-4">My Investments</h2>
-        
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Project
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Investment Date
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Amount (KES)
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Current Value
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Change
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tokens
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {investments.map((investment) => (
-              <tr key={investment.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="p-2 rounded-full bg-gray-100 mr-3">
-                      {getProjectIcon(investment.type)}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">
-                        <Link to={`/projects/${investment.projectId}`} className="hover:text-primary">
-                          {investment.name}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Investment Details</h2>
+          
+          {investments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token Value</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="relative px-6 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {investments.map((investment) => (
+                    <tr key={investment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{investment.project}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{investment.symbol}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{investment.tokenId}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-900">{investment.amount.toLocaleString()}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-900">{investment.tokenValue.toLocaleString()} ℏ</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-medium text-gray-900">{investment.totalValue.toLocaleString()} ℏ</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`flex items-center ${investment.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {investment.changePercent >= 0 ? (
+                            <FaArrowUp className="mr-1 h-3 w-3" />
+                          ) : (
+                            <FaArrowDown className="mr-1 h-3 w-3" />
+                          )}
+                          {Math.abs(investment.changePercent).toFixed(2)}%
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-gray-500">{investment.date}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link to={`/projects/${investment.id}`} className="text-primary hover:text-primary-dark">
+                          View
                         </Link>
-                      </div>
-                      <div className="text-sm text-gray-500">{investment.location}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(investment.investmentDate).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {investment.amount.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {investment.currentValue.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className={`flex items-center ${investment.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {investment.changePercent >= 0 ? (
-                      <FaArrowUp className="mr-1" />
-                    ) : (
-                      <FaArrowDown className="mr-1" />
-                    )}
-                    <span>
-                      {investment.changePercent >= 0 ? '+' : ''}
-                      {investment.changePercent}%
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {investment.tokens} {investment.tokenSymbol}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    @ KES {investment.tokenPrice}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button className="text-primary hover:text-primary-dark mr-3">
-                    <FaExchangeAlt /> Trade
-                  </button>
-                  <Link to={`/projects/${investment.projectId}`} className="text-gray-600 hover:text-gray-900">
-                    Details
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Disclaimer */}
-      <div className="bg-yellow-50 p-4 rounded-md">
-        <div className="flex">
-          <FaExclamationTriangle className="text-yellow-500 mt-1 mr-2 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-yellow-800">Investment Disclaimer</h4>
-            <p className="text-sm text-gray-700 mt-1">
-              Past performance is not indicative of future results. The value of investments and the income from them can go down as well as up and investors may not get back the amounts originally invested. 
-              All investments involve risks including the potential loss of principal.
-            </p>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FaInfoCircle className="mx-auto h-12 w-12 text-gray-300" />
+              <h3 className="mt-2 text-lg font-medium text-gray-900">No investments found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                You haven't made any investments yet. Start by exploring available projects.
+              </p>
+              <div className="mt-6">
+                <Link
+                  to="/projects"
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                >
+                  Browse Projects
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -54,4 +54,133 @@ const apiService = {
     apiClient.get(`/hedera/tokens/${tokenId}/holders`, { params: { threshold } }),
 };
 
+// Project endpoints
+const projectService = {
+  getProjects: async () => {
+    try {
+      const response = await apiClient.get('/projects');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      throw error;
+    }
+  },
+  
+  getProject: async (id) => {
+    try {
+      const response = await apiClient.get(`/projects/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching project ${id}:`, error);
+      throw error;
+    }
+  },
+  
+  createProject: async (projectData) => {
+    try {
+      const response = await apiClient.post('/projects', projectData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  }
+};
+
+// Token and Hedera endpoints
+const hederaService = {
+  getStatus: async () => {
+    try {
+      const response = await apiClient.get('/direct-hedera/status');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching Hedera status:', error);
+      throw error;
+    }
+  },
+  
+  getAccount: async (accountId) => {
+    try {
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/info`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching account ${accountId}:`, error);
+      throw error;
+    }
+  },
+  
+  getAccountBalance: async (accountId) => {
+    try {
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/balance`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching account balance ${accountId}:`, error);
+      throw error;
+    }
+  },
+  
+  getTokenInfo: async (tokenId) => {
+    try {
+      const response = await apiClient.get(`/direct-hedera/token/${tokenId}/info`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching token ${tokenId}:`, error);
+      throw error;
+    }
+  },
+  
+  transferHbar: async (data) => {
+    try {
+      const response = await apiClient.post(`/direct-hedera/hbar/transfer`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error transferring HBAR:', error);
+      throw error;
+    }
+  },
+  
+  transferToken: async (data) => {
+    try {
+      const response = await apiClient.post(`/direct-hedera/token/transfer`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error transferring token:', error);
+      throw error;
+    }
+  }
+};
+
+// Portfolio endpoints
+const portfolioService = {
+  getUserPortfolio: async (userId) => {
+    try {
+      const response = await apiClient.get(`/users/${userId}/portfolio`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching portfolio for user ${userId}:`, error);
+      throw error;
+    }
+  },
+  
+  getUserInvestments: async (userId) => {
+    try {
+      const response = await apiClient.get(`/users/${userId}/investments`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching investments for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  simulateInvestment: async (userId, projectId, amount) => {
+    try {
+      const response = await apiClient.post(`/simulation/${userId}/${projectId}`, { amount });
+      return response.data;
+    } catch (error) {
+      console.error('Error simulating investment:', error);
+      throw error;
+    }
+  }
+};
+
 export default apiService; 

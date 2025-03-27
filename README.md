@@ -23,6 +23,7 @@ StakeMate is designed to democratize infrastructure investment by lowering barri
 - **Backend**: Node.js, Express
 - **Blockchain**: Hedera Hashgraph
 - **AI/ML**: Sentiment analysis, recommendation engines, risk assessment models
+- **Database**: MongoDB
 
 ## Getting Started
 
@@ -31,6 +32,52 @@ StakeMate is designed to democratize infrastructure investment by lowering barri
 - Node.js v16 or higher
 - npm or yarn package manager
 - A Hedera testnet account (for development)
+- MongoDB v4.4 or higher
+
+### MongoDB Setup
+
+1. Install MongoDB:
+   - **Linux**: Follow the [official MongoDB installation guide](https://docs.mongodb.com/manual/administration/install-on-linux/)
+   - **macOS**: `brew install mongodb-community`
+   - **Windows**: Download and install from the [MongoDB website](https://www.mongodb.com/try/download/community)
+
+2. Start MongoDB service:
+   ```bash
+   sudo systemctl start mongod    # Linux
+   brew services start mongodb-community    # macOS
+   ```
+
+3. Create a database and user for StakeMate:
+   ```bash
+   mongosh
+   ```
+
+   ```javascript
+   // Inside the MongoDB shell
+   use stakemate
+   
+   db.createUser({
+     user: "stakemate_user",
+     pwd: "secure_password_here",
+     roles: [{ role: "readWrite", db: "stakemate" }]
+   })
+   
+   exit
+   ```
+
+4. Update your `.env` file with your MongoDB configuration (copy from `.env.example`):
+   ```
+   DB_HOST=localhost
+   DB_PORT=27017
+   DB_NAME=stakemate
+   DB_USER=stakemate_user
+   DB_PASSWORD=secure_password_here
+   ```
+
+   Alternatively, use a connection URI:
+   ```
+   DB_URI=mongodb://stakemate_user:secure_password_here@localhost:27017/stakemate
+   ```
 
 ### Installation
 
