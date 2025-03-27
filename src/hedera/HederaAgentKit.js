@@ -23,13 +23,13 @@ const {
 class HederaAgentKit {
   constructor() {
     // Initialize Hedera client based on environment variables
-    const operatorId = process.env.OPERATOR_ID;
-    const operatorKey = process.env.OPERATOR_KEY;
+    const operatorId = process.env.HEDERA_ACCOUNT_ID;
+    const operatorKey = process.env.HEDERA_PRIVATE_KEY;
     const network = process.env.HEDERA_NETWORK || 'testnet';
 
     if (!operatorId || !operatorKey) {
       throw new Error(
-        'Environment variables OPERATOR_ID and OPERATOR_KEY must be present'
+        'Environment variables HEDERA_ACCOUNT_ID and HEDERA_PRIVATE_KEY must be present'
       );
     }
 
@@ -43,19 +43,19 @@ class HederaAgentKit {
   }
 
   /**
-   * Create a new infrastructure project token
-   * @param {Object} projectData Project metadata to include with the token
+   * Create a new token for an infrastructure project
+   * @param {Object} projectData Project data to tokenize
    * @returns {Object} Token information including token ID
    */
   async createInfrastructureToken(projectData) {
     try {
       // Validate required project data
-      if (!projectData.name || !projectData.symbol || !projectData.description) {
-        throw new Error('Token requires name, symbol, and description');
+      if (!projectData.name || !projectData.symbol) {
+        throw new Error('Project token requires name and symbol');
       }
 
-      // Create the infrastructure token with rich metadata
-      const transaction = new TokenCreateTransaction()
+      // Create a token with project metadata
+      const transaction = await new TokenCreateTransaction()
         .setTokenName(projectData.name)
         .setTokenSymbol(projectData.symbol)
         .setDecimals(projectData.decimals || 8)
@@ -65,16 +65,7 @@ class HederaAgentKit {
         .setSupplyKey(this.client.operatorPublicKey)
         .setTokenType(TokenType.FungibleCommon)
         .setSupplyType(TokenSupplyType.Infinite)
-        .setTokenMemo(JSON.stringify({
-          description: projectData.description,
-          location: projectData.location,
-          type: projectData.type,
-          esg: projectData.esgMetrics,
-          timeline: projectData.timeline,
-          website: projectData.website,
-          risk: projectData.riskScore,
-          regulator: projectData.regulator || 'CMA'
-        }));
+        .setTokenMemo(`Infrastructure token for ${projectData.name} in ${projectData.location || 'Kenya'}`);
 
       // Submit the transaction
       const txResponse = await transaction.execute(this.client);
@@ -137,13 +128,7 @@ class HederaAgentKit {
 
       // Create a new topic for this project
       const transaction = new TopicCreateTransaction()
-        .setTopicMemo(JSON.stringify({
-          projectName: topicData.projectName,
-          tokenId: topicData.tokenId,
-          description: topicData.description || '',
-          type: 'infrastructure-project',
-          createdAt: new Date().toISOString()
-        }))
+        .setTopicMemo(`Project updates for ${topicData.projectName} (${topicData.tokenId})`)
         .setSubmitKey(this.client.operatorPublicKey);
 
       // Submit the transaction
@@ -176,10 +161,25 @@ class HederaAgentKit {
         throw new Error('Topic ID and message are required');
       }
 
-      // Ensure message is a string
-      const messageStr = typeof message === 'object' 
-        ? JSON.stringify(message) 
-        : message.toString();
+      // Create a simplified message if it's an object
+      let messageStr;
+      if (typeof message === 'object') {
+        // Extract essential information for a more compact message
+        const essentialInfo = {
+          type: message.type || 'UPDATE',
+          projectId: message.projectId,
+          timestamp: message.timestamp || new Date().toISOString(),
+          summary: message.summary || (message.updates ? `Updates to ${Object.keys(message.updates).join(', ')}` : 'Project update')
+        };
+        messageStr = JSON.stringify(essentialInfo);
+      } else {
+        messageStr = message.toString();
+      }
+
+      // Limit message length to avoid MEMO_TOO_LONG error (max 100 chars to be safe)
+      if (messageStr.length > 100) {
+        messageStr = messageStr.substring(0, 97) + '...';
+      }
 
       // Submit message to topic
       const transaction = new TopicMessageSubmitTransaction()
@@ -229,10 +229,24 @@ class HederaAgentKit {
         recommendation.timestamp = new Date().toISOString();
       }
 
+      // Create simplified recommendation message
+      const simplifiedRecommendation = {
+        userId: recommendation.userId,
+        projectId: recommendation.projectTokenId,
+        score: recommendation.score || 0,
+        timestamp: recommendation.timestamp
+      };
+
+      // Convert to string and limit length
+      let messageStr = JSON.stringify(simplifiedRecommendation);
+      if (messageStr.length > 100) {
+        messageStr = messageStr.substring(0, 97) + '...';
+      }
+
       // Submit recommendation to topic
       const transaction = new TopicMessageSubmitTransaction()
         .setTopicId(recommendation.topicId)
-        .setMessage(JSON.stringify(recommendation));
+        .setMessage(messageStr);
 
       // Submit the transaction
       const txResponse = await transaction.execute(this.client);
@@ -274,17 +288,25 @@ class HederaAgentKit {
         investmentData.timestamp = new Date().toISOString();
       }
 
-      // Create investment record
-      const investmentRecord = {
-        ...investmentData,
-        type: 'INVESTMENT_SIMULATION',
-        timestamp: investmentData.timestamp
+      // Create simplified investment record
+      const simplifiedRecord = {
+        userId: investmentData.userId,
+        tokenId: investmentData.tokenId,
+        amount: investmentData.amount,
+        timestamp: investmentData.timestamp,
+        type: 'SIM'
       };
+
+      // Convert to string and limit length
+      let messageStr = JSON.stringify(simplifiedRecord);
+      if (messageStr.length > 100) {
+        messageStr = messageStr.substring(0, 97) + '...';
+      }
 
       // Submit investment record to topic
       const transaction = new TopicMessageSubmitTransaction()
         .setTopicId(topicId)
-        .setMessage(JSON.stringify(investmentRecord));
+        .setMessage(messageStr);
 
       // Submit the transaction
       const txResponse = await transaction.execute(this.client);
@@ -294,7 +316,7 @@ class HederaAgentKit {
       return { 
         status: receipt.status.toString(),
         topicId,
-        investment: investmentRecord
+        investment: simplifiedRecord
       };
     } catch (error) {
       console.error('Error simulating investment:', error);

@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const StakemateAgent = require('./agent/StakemateAgent');
 const SentimentService = require('./services/SentimentService');
 const ComplianceService = require('./services/ComplianceService');
@@ -8,6 +9,11 @@ const PortfolioUtils = require('./utils/PortfolioUtils');
 const TokenAnalytics = require('./utils/TokenAnalytics');
 const MilestoneUtils = require('./utils/MilestoneUtils');
 
+// Import route handlers
+const hederaRoutes = require('./routes/hederaRoutes');
+const directHederaRoutes = require('./routes/directHederaRoutes');
+const tokenRoutes = require('./routes/tokenRoutes');
+
 // Initialize services
 const stakemateAgent = new StakemateAgent();
 const sentimentService = new SentimentService();
@@ -15,16 +21,26 @@ const complianceService = new ComplianceService();
 
 // Create Express app
 const app = express();
+
+// Middleware
 app.use(express.json());
+app.use(cors());  // Enable CORS for all routes
 
 // Set port
 const PORT = process.env.PORT || 3000;
+
+// API routes
+app.use('/api/hedera', hederaRoutes);
+app.use('/api/direct-hedera', directHederaRoutes);
+app.use('/api/tokens', tokenRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    elizaStatus: process.env.ELIZA_API_URL ? 'configured' : 'not configured',
+    hederaClientStatus: require('./hedera/HederaClient').isConfigured ? 'configured' : 'not configured'
   });
 });
 
