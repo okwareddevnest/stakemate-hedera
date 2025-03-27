@@ -30,6 +30,75 @@ const ProjectDetail = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [tokenInfo, setTokenInfo] = useState(null);
 
+  // Helper functions
+  const getRiskLevelText = (riskScore) => {
+    if (riskScore < 30) return 'Low';
+    if (riskScore < 60) return 'Medium';
+    if (riskScore < 80) return 'Medium-High';
+    return 'High';
+  };
+  
+  const calculateESGScore = (esgMetrics) => {
+    if (!esgMetrics) return 70; // Default score
+    
+    // Simple scoring based on available metrics
+    let score = 70;
+    if (esgMetrics.environmentalImpact === 'positive') score += 10;
+    if (esgMetrics.environmentalImpact === 'very positive') score += 20;
+    if (esgMetrics.socialBenefit === 'high') score += 10;
+    if (esgMetrics.jobsCreated > 1000) score += 5;
+    if (esgMetrics.carbonReduction > 50000) score += 5;
+    
+    return Math.min(score, 100);
+  };
+  
+  const calculateProgress = (timeline) => {
+    if (!timeline) return 30; // Default progress
+    
+    const now = new Date();
+    const start = new Date(timeline.startDate);
+    const end = new Date(timeline.estimatedCompletionDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 30;
+    
+    const totalDuration = end - start;
+    const elapsed = now - start;
+    
+    let progress = Math.round((elapsed / totalDuration) * 100);
+    // Cap between 0 and 100
+    return Math.max(0, Math.min(100, progress));
+  };
+  
+  const getProjectIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'transportation':
+        return <FaRoad className="h-6 w-6 text-primary" />;
+      case 'energy':
+        return <FaLightbulb className="h-6 w-6 text-yellow-500" />;
+      case 'water':
+        return <FaWater className="h-6 w-6 text-blue-500" />;
+      case 'digital':
+        return <FaNetworkWired className="h-6 w-6 text-purple-500" />;
+      default:
+        return <FaBuilding className="h-6 w-6 text-gray-500" />;
+    }
+  };
+  
+  const getRiskColor = (riskLevel) => {
+    switch (riskLevel) {
+      case 'Low': 
+        return 'bg-green-100 text-green-800';
+      case 'Medium': 
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Medium-High': 
+        return 'bg-orange-100 text-orange-800';
+      case 'High': 
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   // Fetch project data
   useEffect(() => {
     const fetchProjectData = async () => {
@@ -81,10 +150,11 @@ const ProjectDetail = () => {
         console.error('Error fetching project:', err);
         setError(err.message || 'Failed to load project details');
         
-        // Use sample data as fallback for demo
+        // Use sample data as fallback for demo purposes
+        // Using the ID from the URL to create a consistent experience
         setProject({
           id: id,
-          name: 'Nairobi Commuter Rail',
+          name: id.startsWith('inv-') ? 'Investment Opportunity' : 'Nairobi Commuter Rail',
           type: 'Transportation',
           location: 'Nairobi, Kenya',
           roi: 8.5,
@@ -92,37 +162,23 @@ const ProjectDetail = () => {
           esgScore: 78,
           progress: 45,
           description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-          longDescription: `The Nairobi Commuter Rail project aims to transform urban mobility in Kenya's capital by expanding and modernizing the existing rail network. This infrastructure initiative will connect major suburbs to the central business district, significantly reducing traffic congestion and carbon emissions.
+          longDescription: `This infrastructure project aims to transform urban mobility by expanding and modernizing the existing network. This initiative will connect major suburbs to the central business district, significantly reducing traffic congestion and carbon emissions.
 
-The project includes the construction of new rail lines, modernization of existing tracks, and development of modern stations with digital payment systems and real-time tracking. Solar-powered stations will further reduce the environmental impact of the transit system.
+The project includes the construction of new lines, modernization of existing tracks, and development of modern stations with digital payment systems and real-time tracking. Solar-powered stations will further reduce the environmental impact of the transit system.
 
-By improving public transportation infrastructure, the project will enhance economic productivity by reducing commute times, lower transportation costs for residents, and contribute to climate change mitigation through reduced vehicle emissions.`,
-          startDate: '2023-06-15',
-          estimatedCompletion: '2026-12-31',
+Benefits include reduced travel time for commuters, decreased air pollution, and creation of jobs both during construction and operation. The project aligns with national transportation and environmental goals.`,
+          startDate: '2023-01-15',
+          estimatedCompletion: '2025-06-30',
           minInvestment: 5000,
           totalFunding: 45000000,
           currentFunding: 28000000,
           tokenSymbol: 'NCR',
           tokenPrice: 50,
-          stakeholders: ['Kenya Railways Corporation', 'Nairobi Metropolitan Services', 'Ministry of Transport'],
+          stakeholders: ['Government of Kenya', 'Local Communities', 'Private Investors'],
           documents: [
             { name: 'Environmental Impact Assessment', url: '#' },
             { name: 'Feasibility Study', url: '#' },
             { name: 'Project Timeline', url: '#' }
-          ],
-          milestones: [
-            { name: 'Land Acquisition', status: 'Completed', date: '2023-09-01' },
-            { name: 'Environmental Approval', status: 'Completed', date: '2023-11-15' },
-            { name: 'Foundation Work', status: 'In Progress', date: '2024-05-01' },
-            { name: 'Track Installation', status: 'Planned', date: '2025-02-01' },
-            { name: 'Station Construction', status: 'Planned', date: '2025-07-01' },
-            { name: 'System Testing', status: 'Planned', date: '2026-06-01' },
-            { name: 'Project Completion', status: 'Planned', date: '2026-12-01' }
-          ],
-          updates: [
-            { date: '2024-02-15', title: 'Construction Commenced', content: 'Official groundbreaking ceremony held with stakeholders present.' },
-            { date: '2024-01-10', title: 'Contractor Selected', content: 'After competitive bidding, primary contractor has been selected.' },
-            { date: '2023-12-05', title: 'Funding Milestone Reached', content: '50% of required funding secured through public and private investment.' }
           ],
           risks: [
             { category: 'Construction', level: 'Medium', description: 'Potential delays due to weather conditions and supply chain issues.' },
@@ -142,84 +198,6 @@ By improving public transportation infrastructure, the project will enhance econ
     
     fetchProjectData();
   }, [id]);
-
-  // Helper functions
-  const getRiskLevelText = (riskScore) => {
-    if (riskScore < 30) return 'Low';
-    if (riskScore < 45) return 'Medium-Low';
-    if (riskScore < 60) return 'Medium';
-    if (riskScore < 80) return 'Medium-High';
-    return 'High';
-  };
-  
-  const calculateESGScore = (esgMetrics) => {
-    if (!esgMetrics) return 70; // Default score
-    
-    // Simple scoring based on available metrics
-    let score = 70;
-    if (esgMetrics.environmentalImpact === 'positive') score += 10;
-    if (esgMetrics.environmentalImpact === 'very positive') score += 20;
-    if (esgMetrics.socialBenefit === 'high') score += 10;
-    if (esgMetrics.jobsCreated > 1000) score += 5;
-    if (esgMetrics.carbonReduction > 50000) score += 5;
-    
-    return Math.min(score, 100);
-  };
-  
-  const calculateProgress = (timeline) => {
-    if (!timeline) return 30; // Default progress
-    
-    const now = new Date();
-    const start = new Date(timeline.startDate);
-    const end = new Date(timeline.estimatedCompletionDate);
-    
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 30;
-    
-    const totalDuration = end - start;
-    const elapsed = now - start;
-    
-    let progress = Math.round((elapsed / totalDuration) * 100);
-    // Cap between 0 and 100
-    return Math.max(0, Math.min(100, progress));
-  };
-
-  // Get project type icon
-  const getProjectIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'transportation':
-        return <FaRoad className="text-primary h-6 w-6" />;
-      case 'energy':
-        return <FaLightbulb className="text-yellow-500 h-6 w-6" />;
-      case 'water':
-        return <FaWater className="text-blue-500 h-6 w-6" />;
-      case 'digital':
-        return <FaNetworkWired className="text-purple-500 h-6 w-6" />;
-      case 'social':
-        return <FaBuilding className="text-orange-500 h-6 w-6" />;
-      case 'environmental':
-        return <FaLeaf className="text-secondary h-6 w-6" />;
-      default:
-        return <FaBuilding className="text-gray-500 h-6 w-6" />;
-    }
-  };
-
-  // Get risk level color
-  const getRiskColor = (riskLevel) => {
-    switch (riskLevel) {
-      case 'Low':
-        return 'bg-green-100 text-green-800';
-      case 'Medium-Low':
-        return 'bg-teal-100 text-teal-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Medium-High':
-        return 'bg-orange-100 text-orange-800';
-      case 'High':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   // Handle investment form submission
   const handleInvestmentSubmit = async (e) => {
