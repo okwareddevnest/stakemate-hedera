@@ -23,13 +23,13 @@ apiClient.interceptors.request.use((config) => {
 // API service with methods for different endpoints
 const apiService = {
   // Auth endpoints
-  login: (credentials) => apiClient.post('/api/auth/login', credentials),
-  register: (userData) => apiClient.post('/api/auth/register', userData),
+  login: (credentials) => apiClient.post('/auth/login', credentials),
+  register: (userData) => apiClient.post('/auth/register', userData),
   
   // Projects endpoints
   getProjects: async (filters) => {
     try {
-      const response = await apiClient.get('/api/projects', { params: filters });
+      const response = await apiClient.get('/projects', { params: filters });
       return response.data;
     } catch (error) {
       console.error('Error getting projects:', error);
@@ -151,37 +151,37 @@ const apiService = {
       ];
     }
   },
-  getProjectById: (projectId) => apiClient.get(`/api/projects/${projectId}`),
+  getProjectById: (projectId) => apiClient.get(`/projects/${projectId}`),
   
   // User endpoints
-  getUserProfile: (userId) => apiClient.get(`/api/users/${userId}`),
-  updateUserProfile: (userId, userData) => apiClient.put(`/api/users/${userId}`, userData),
+  getUserProfile: (userId) => apiClient.get(`/users/${userId}`),
+  updateUserProfile: (userId, userData) => apiClient.put(`/users/${userId}`, userData),
   
   // Investments endpoints
-  getUserInvestments: (userId) => apiClient.get(`/api/users/${userId}/investments`),
-  createInvestment: (investmentData) => apiClient.post('/api/investments', investmentData),
-  getInvestmentById: (investmentId) => apiClient.get(`/api/investments/${investmentId}`),
+  getUserInvestments: (userId) => apiClient.get(`/users/${userId}/investments`),
+  createInvestment: (investmentData) => apiClient.post('/investments', investmentData),
+  getInvestmentById: (investmentId) => apiClient.get(`/investments/${investmentId}`),
   
   // AI features
-  getRecommendations: (userId) => apiClient.post(`/api/recommendations/${userId}`),
+  getRecommendations: (userId) => apiClient.post(`/recommendations/${userId}`),
   simulateInvestment: (userId, projectId, amount) => 
-    apiClient.post(`/api/simulation/${userId}/${projectId}`, { amount }),
-  analyzeSentiment: (data) => apiClient.post('/api/analysis/sentiment', data),
+    apiClient.post(`/simulation/${userId}/${projectId}`, { amount }),
+  analyzeSentiment: (data) => apiClient.post('/analysis/sentiment', data),
   
   // Hedera-specific endpoints (via backend that may use Eliza)
-  getHbarBalance: (accountId) => apiClient.get(`/api/hedera/balance/${accountId}`),
+  getHbarBalance: (accountId) => apiClient.get(`/hedera/balance/${accountId}`),
   getTokenBalance: (accountId, tokenId) => 
-    apiClient.get(`/api/hedera/tokens/${tokenId}/balance/${accountId}`),
-  getAllTokenBalances: (accountId) => apiClient.get(`/api/hedera/tokens/${accountId || 'me'}`),
+    apiClient.get(`/hedera/tokens/${tokenId}/balance/${accountId}`),
+  getAllTokenBalances: (accountId) => apiClient.get(`/hedera/tokens/${accountId || 'me'}`),
   getTokenHolders: (tokenId, threshold = 0) => 
-    apiClient.get(`/api/hedera/tokens/${tokenId}/holders`, { params: { threshold } }),
+    apiClient.get(`/hedera/tokens/${tokenId}/holders`, { params: { threshold } }),
 };
 
 // Project endpoints
 const projectService = {
   getAll: async (filters = {}) => {
     try {
-      const response = await apiClient.get('/api/projects', { params: filters });
+      const response = await apiClient.get('/projects', { params: filters });
       return response.data;
     } catch (error) {
       console.error('Error getting projects:', error);
@@ -191,7 +191,7 @@ const projectService = {
   
   getById: async (projectId) => {
     try {
-      const response = await apiClient.get(`/api/projects/${projectId}`);
+      const response = await apiClient.get(`/projects/${projectId}`);
       return response.data;
     } catch (error) {
       console.error(`Error getting project ${projectId}:`, error);
@@ -201,7 +201,7 @@ const projectService = {
   
   getSentiment: async (projectId) => {
     try {
-      const response = await apiClient.get(`/api/projects/${projectId}/sentiment`);
+      const response = await apiClient.get(`/projects/${projectId}/sentiment`);
       return response.data;
     } catch (error) {
       console.error(`Error getting sentiment for project ${projectId}:`, error);
@@ -211,7 +211,7 @@ const projectService = {
   
   getUpdates: async (projectId, limit = 10) => {
     try {
-      const response = await apiClient.get(`/api/projects/${projectId}/updates`, { params: { limit } });
+      const response = await apiClient.get(`/projects/${projectId}/updates`, { params: { limit } });
       return response.data;
     } catch (error) {
       console.error(`Error getting updates for project ${projectId}:`, error);
@@ -234,7 +234,7 @@ const projectService = {
 const hederaService = {
   getStatus: async () => {
     try {
-      const response = await apiClient.get('/api/direct-hedera/status');
+      const response = await apiClient.get('/direct-hedera/status');
       return response.data;
     } catch (error) {
       console.error('Error checking Hedera status:', error);
@@ -244,7 +244,7 @@ const hederaService = {
   
   getAccount: async (accountId) => {
     try {
-      const response = await apiClient.get(`/api/direct-hedera/account/${accountId}/info`);
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/info`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching account ${accountId}:`, error);
@@ -254,7 +254,7 @@ const hederaService = {
   
   getAccountBalance: async (accountId) => {
     try {
-      const response = await apiClient.get(`/api/direct-hedera/account/${accountId}/balance`);
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/balance`);
       return response.data;
     } catch (error) {
       console.error(`Error getting account balance for ${accountId}:`, error);
@@ -264,7 +264,7 @@ const hederaService = {
   
   getAccountInfo: async (accountId) => {
     try {
-      const response = await apiClient.get(`/api/direct-hedera/account/${accountId}/info`);
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/info`);
       return response.data;
     } catch (error) {
       console.error(`Error getting account info for ${accountId}:`, error);
@@ -274,7 +274,7 @@ const hederaService = {
   
   getTokenInfo: async (tokenId) => {
     try {
-      const response = await apiClient.get(`/api/direct-hedera/token/${tokenId}/info`);
+      const response = await apiClient.get(`/direct-hedera/token/${tokenId}/info`);
       return response.data;
     } catch (error) {
       console.error(`Error getting token info for ${tokenId}:`, error);
@@ -284,7 +284,7 @@ const hederaService = {
   
   getTokenBalance: async (accountId, tokenId) => {
     try {
-      const response = await apiClient.get(`/api/direct-hedera/account/${accountId}/token/${tokenId}/balance`);
+      const response = await apiClient.get(`/direct-hedera/account/${accountId}/token/${tokenId}/balance`);
       return response.data;
     } catch (error) {
       console.error(`Error getting token balance for account ${accountId}, token ${tokenId}:`, error);
@@ -294,7 +294,7 @@ const hederaService = {
   
   associateToken: async (data) => {
     try {
-      const response = await apiClient.post(`/api/direct-hedera/token/associate`, data);
+      const response = await apiClient.post(`/direct-hedera/token/associate`, data);
       return response.data;
     } catch (error) {
       console.error('Error associating token:', error);
@@ -304,7 +304,7 @@ const hederaService = {
   
   transferHbar: async (data) => {
     try {
-      const response = await apiClient.post(`/api/direct-hedera/hbar/transfer`, data);
+      const response = await apiClient.post(`/direct-hedera/hbar/transfer`, data);
       return response.data;
     } catch (error) {
       console.error('Error transferring HBAR:', error);
@@ -314,7 +314,7 @@ const hederaService = {
   
   transferToken: async (data) => {
     try {
-      const response = await apiClient.post(`/api/direct-hedera/token/transfer`, data);
+      const response = await apiClient.post(`/direct-hedera/token/transfer`, data);
       return response.data;
     } catch (error) {
       console.error('Error transferring token:', error);
@@ -327,7 +327,7 @@ const hederaService = {
 const portfolioService = {
   getUserPortfolio: async (userId) => {
     try {
-      const response = await apiClient.get(`/api/users/${userId}/portfolio`);
+      const response = await apiClient.get(`/users/${userId}/portfolio`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching portfolio for user ${userId}:`, error);
@@ -337,7 +337,7 @@ const portfolioService = {
   
   getUserInvestments: async (userId) => {
     try {
-      const response = await apiClient.get(`/api/users/${userId}/investments`);
+      const response = await apiClient.get(`/users/${userId}/investments`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching investments for user ${userId}:`, error);
@@ -347,7 +347,7 @@ const portfolioService = {
 
   simulateInvestment: async (userId, projectId, amount) => {
     try {
-      const response = await apiClient.post(`/api/simulation/${userId}/${projectId}`, { amount });
+      const response = await apiClient.post(`/simulation/${userId}/${projectId}`, { amount });
       return response.data;
     } catch (error) {
       console.error('Error simulating investment:', error);

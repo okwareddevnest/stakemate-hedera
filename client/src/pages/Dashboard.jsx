@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaArrowUp, FaArrowDown, FaChartLine, FaBuilding, FaLeaf, FaLightbulb, FaRoad, FaRobot } from 'react-icons/fa';
-import apiService from '../services/api';
+import apiService, { hederaService } from '../services/api';
 
 // Import chart components
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
@@ -48,13 +48,13 @@ const Dashboard = () => {
         
         // Fetch Hedera status
         try {
-          const statusResponse = await apiService.getStatus();
+          const statusResponse = await hederaService.getStatus();
           if (statusResponse?.success) {
             setHederaStatus(statusResponse.data);
             
             // If we have an account ID, fetch its balance
             if (statusResponse.data.accountId) {
-              const balanceResponse = await apiService.getAccountBalance(statusResponse.data.accountId);
+              const balanceResponse = await hederaService.getAccountBalance(statusResponse.data.accountId);
               if (balanceResponse?.success) {
                 const tokenCount = Object.keys(JSON.parse(balanceResponse.data.tokens || '{}')).length;
                 
