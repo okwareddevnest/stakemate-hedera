@@ -54,6 +54,21 @@ class HederaAgentKit {
         throw new Error('Project token requires name and symbol');
       }
 
+      // Create a token memo with limited length (max 100 chars to be safe)
+      let tokenMemo = `Infrastructure token for ${projectData.name}`;
+      if (projectData.location) {
+        const potentialMemo = `${tokenMemo} in ${projectData.location}`;
+        // Only add location if the total length is still under limit
+        if (potentialMemo.length <= 100) {
+          tokenMemo = potentialMemo;
+        }
+      }
+      
+      // Ensure memo doesn't exceed max length
+      if (tokenMemo.length > 100) {
+        tokenMemo = tokenMemo.substring(0, 97) + '...';
+      }
+
       // Create a token with project metadata
       const transaction = await new TokenCreateTransaction()
         .setTokenName(projectData.name)
@@ -65,7 +80,7 @@ class HederaAgentKit {
         .setSupplyKey(this.client.operatorPublicKey)
         .setTokenType(TokenType.FungibleCommon)
         .setSupplyType(TokenSupplyType.Infinite)
-        .setTokenMemo(`Infrastructure token for ${projectData.name} in ${projectData.location || 'Kenya'}`);
+        .setTokenMemo(tokenMemo);
 
       // Submit the transaction
       const txResponse = await transaction.execute(this.client);

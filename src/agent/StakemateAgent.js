@@ -720,7 +720,7 @@ class StakemateAgent {
         price: tokenPrice,
         timestamp: new Date().toISOString(),
         type: 'simulated',
-        status: 'completed'
+        status: 'complete'
       };
       
       // Add to user's investment history
@@ -765,64 +765,100 @@ class StakemateAgent {
     try {
       console.log('Creating demo data...');
       
-      // Create a demo user
-      const demoUser = await this.createUser({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        phoneNumber: '+254712345678',
-        country: 'Kenya',
-        city: 'Nairobi',
-        riskTolerance: 'moderate',
-        riskToleranceScore: 60,
-        investmentGoals: ['growth', 'sustainability', 'infrastructure']
-      });
+      // Look for existing demo user before creating
+      let demoUser;
+      try {
+        demoUser = await User.findOne({ email: 'john.doe@example.com' });
+        
+        if (!demoUser) {
+          // Create a demo user if not exists
+          demoUser = await this.createUser({
+            name: 'John Doe',
+            email: 'john.doe@example.com',
+            phoneNumber: '+254712345678',
+            country: 'Kenya',
+            city: 'Nairobi',
+            riskTolerance: 'moderate',
+            riskToleranceScore: 60,
+            investmentGoals: ['growth', 'sustainability', 'infrastructure']
+          });
+        } else {
+          console.log('Demo user already exists, skipping creation');
+        }
+      } catch (error) {
+        console.error('Error with demo user:', error);
+        // Continue even if user creation fails
+      }
       
-      // Create a demo infrastructure project
-      const demoProject = await this.createProject({
-        name: 'Nairobi Commuter Rail',
-        symbol: 'NCR',
-        description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-        location: 'Nairobi, Kenya',
-        type: 'Transportation',
-        website: 'https://example.com/nairobi-rail',
-        totalBudget: 45000000,
-        fundingSecured: 28000000,
-        expectedReturn: 8.5,
-        environmentalImpact: 'positive',
-        carbonReduction: 25000,
-        jobsCreated: 1200,
-        minInvestmentAmount: 5000
-      });
+      // Look for existing projects before creating
+      const existingProjects = await InfrastructureProject.find({});
+      let demoProject, demoProject2;
+
+      // Only create projects if none exist
+      if (existingProjects.length === 0) {
+        try {
+          // Create a demo infrastructure project
+          demoProject = await this.createProject({
+            name: 'Nairobi Commuter Rail',
+            symbol: 'NCR',
+            description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
+            location: 'Nairobi, Kenya',
+            type: 'Transportation',
+            website: 'https://example.com/nairobi-rail',
+            totalBudget: 45000000,
+            fundingSecured: 28000000,
+            expectedReturn: 8.5,
+            environmentalImpact: 'positive',
+            carbonReduction: 25000,
+            jobsCreated: 1200,
+            minInvestmentAmount: 5000
+          });
+          
+          // Create a second demo project
+          demoProject2 = await this.createProject({
+            name: 'Lake Turkana Wind Power',
+            symbol: 'LTWP',
+            description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
+            location: 'Turkana, Kenya',
+            type: 'Energy',
+            website: 'https://example.com/turkana-wind',
+            totalBudget: 85000000,
+            fundingSecured: 62000000,
+            expectedReturn: 12.8,
+            environmentalImpact: 'very positive',
+            carbonReduction: 75000,
+            jobsCreated: 800,
+            minInvestmentAmount: 10000
+          });
+          
+          // Only simulate investment if both user and project exist
+          if (demoUser && demoProject) {
+            // Simulate an investment
+            await this.simulateInvestment(demoUser.id, demoProject.id, 10000);
+          }
+        } catch (error) {
+          console.error('Error creating demo projects:', error);
+          // Continue execution even if project creation fails
+        }
+      } else {
+        console.log('Projects already exist, skipping creation');
+        demoProject = existingProjects[0];
+        demoProject2 = existingProjects.length > 1 ? existingProjects[1] : null;
+      }
       
-      // Create a second demo project
-      const demoProject2 = await this.createProject({
-        name: 'Lake Turkana Wind Power',
-        symbol: 'LTWP',
-        description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
-        location: 'Turkana, Kenya',
-        type: 'Energy',
-        website: 'https://example.com/turkana-wind',
-        totalBudget: 85000000,
-        fundingSecured: 62000000,
-        expectedReturn: 12.8,
-        environmentalImpact: 'very positive',
-        carbonReduction: 75000,
-        jobsCreated: 800,
-        minInvestmentAmount: 10000
-      });
-      
-      // Simulate an investment
-      await this.simulateInvestment(demoUser.id, demoProject.id, 10000);
-      
-      console.log('Demo data created successfully');
+      console.log('Demo data setup completed');
       
       return {
         user: demoUser,
-        projects: [demoProject, demoProject2]
+        projects: [demoProject, demoProject2].filter(Boolean) // Filter out any null values
       };
     } catch (error) {
       console.error('Error creating demo data:', error);
-      throw error;
+      // Instead of throwing, return what we've created so far
+      return {
+        error: error.message,
+        partial: true
+      };
     }
   }
 }

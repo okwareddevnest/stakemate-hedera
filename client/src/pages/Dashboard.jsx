@@ -47,26 +47,31 @@ const Dashboard = () => {
         }
         
         // Fetch Hedera status
-        const statusResponse = await apiService.getStatus();
-        if (statusResponse?.success) {
-          setHederaStatus(statusResponse.data);
-          
-          // If we have an account ID, fetch its balance
-          if (statusResponse.data.accountId) {
-            const balanceResponse = await apiService.getAccountBalance(statusResponse.data.accountId);
-            if (balanceResponse?.success) {
-              const tokenCount = Object.keys(JSON.parse(balanceResponse.data.tokens || '{}')).length;
-              
-              // Update portfolio stats
-              setPortfolioStats({
-                totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]),
-                changePercent: 3.2, // Mock data for now
-                projects: tokenCount,
-                returns: 12.5, // Mock data for now
-                risk: 'Medium' // Mock data for now
-              });
+        try {
+          const statusResponse = await apiService.getStatus();
+          if (statusResponse?.success) {
+            setHederaStatus(statusResponse.data);
+            
+            // If we have an account ID, fetch its balance
+            if (statusResponse.data.accountId) {
+              const balanceResponse = await apiService.getAccountBalance(statusResponse.data.accountId);
+              if (balanceResponse?.success) {
+                const tokenCount = Object.keys(JSON.parse(balanceResponse.data.tokens || '{}')).length;
+                
+                // Update portfolio stats
+                setPortfolioStats({
+                  totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]),
+                  changePercent: 3.2, // Mock data for now
+                  projects: tokenCount,
+                  returns: 12.5, // Mock data for now
+                  risk: 'Medium' // Mock data for now
+                });
+              }
             }
           }
+        } catch (error) {
+          console.error('Error fetching Hedera status:', error);
+          setHederaStatus({ isConfigured: false });
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);

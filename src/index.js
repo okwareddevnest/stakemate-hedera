@@ -393,6 +393,56 @@ app.post('/api/portfolio/:userId/allocate', async (req, res) => {
   }
 });
 
+// Get user portfolio
+app.get('/api/users/:userId/portfolio', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await stakemateAgent.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Return the portfolio data
+    return res.status(200).json({
+      success: true,
+      data: user.portfolio
+    });
+  } catch (error) {
+    console.error('Error getting user portfolio:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
+// Get user investments
+app.get('/api/users/:userId/investments', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await stakemateAgent.getUser(userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Return the investments data
+    return res.status(200).json({
+      success: true,
+      data: user.investmentHistory
+    });
+  } catch (error) {
+    console.error('Error getting user investments:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+});
+
 app.post('/api/portfolio/:userId/metrics', async (req, res) => {
   try {
     const { userId } = req.params;

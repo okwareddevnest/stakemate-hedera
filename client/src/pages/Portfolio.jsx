@@ -16,7 +16,7 @@ import {
   FaDownload,
   FaExchangeAlt
 } from 'react-icons/fa';
-import apiService from '../services/api';
+import apiService, { portfolioService } from '../services/api';
 
 // Import chart components
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
@@ -47,85 +47,61 @@ const Portfolio = () => {
       setIsLoading(true);
       try {
         // In a real app, you would use the actual user ID from authentication
-        const userId = 'user-1743079616219'; // Demo user ID
+        const userId = 'user-1743081696155'; // Demo user ID
         
-        // Get Hedera status first
-        const statusResponse = await apiService.getStatus();
-        if (statusResponse?.success && statusResponse.data.accountId) {
-          const hederaAccountId = statusResponse.data.accountId;
-          setHederaAccount(hederaAccountId);
+        // Get user's portfolio
+        const portfolioResponse = await portfolioService.getUserPortfolio(userId);
+        if (portfolioResponse?.success) {
+          const portfolioData = portfolioResponse.data;
           
-          // Get account balance
-          const balanceResponse = await apiService.getAccountBalance(hederaAccountId);
-          if (balanceResponse?.success) {
-            // Parse the tokens JSON string into an object
-            const tokensData = JSON.parse(balanceResponse.data.tokens || '{}');
-            const hbarBalance = parseFloat(balanceResponse.data.hbars.split(' ')[0]);
-            
-            // Get information about each token
-            const tokenInfoPromises = Object.keys(tokensData).map(async tokenId => {
-              try {
-                const tokenInfo = await apiService.getTokenInfo(tokenId);
-                if (tokenInfo?.success) {
-                  return {
-                    tokenId,
-                    balance: tokensData[tokenId].low || 0,
-                    ...tokenInfo.data
-                  };
-                }
-                return null;
-              } catch (err) {
-                console.error(`Error fetching token info for ${tokenId}:`, err);
-                return null;
-              }
-            });
-            
-            const tokenInfoResults = await Promise.all(tokenInfoPromises);
-            const validTokenInfo = tokenInfoResults.filter(t => t !== null);
-            
-            // Convert to the format our UI expects
-            const tokenBalances = {};
-            const investments = [];
-            
-            validTokenInfo.forEach(token => {
-              // Add to token balances
-              tokenBalances[token.symbol] = token.balance;
-              
-              // Add to investments array
-              investments.push({
-                id: token.tokenId,
-                project: token.name,
-                symbol: token.symbol,
-                tokenId: token.tokenId,
-                amount: token.balance,
-                tokenValue: 50, // Mock data for now
-                date: new Date().toISOString().split('T')[0],
-                totalValue: token.balance * 50, // Mock calculation
-                changePercent: 3.2 // Mock data
-              });
-            });
-            
-            // Calculate portfolio metrics
-            const totalValue = hbarBalance + Object.values(investments).reduce((sum, inv) => sum + inv.totalValue, 0);
-            const initialInvestment = totalValue * 0.9; // Mock data assuming 10% growth
-            const changeAmount = totalValue - initialInvestment;
-            const changePercent = (changeAmount / initialInvestment) * 100;
-            
-            setPortfolio({
-              totalValue,
-              initialInvestment,
-              changeAmount,
-              changePercent,
-              tokenBalance: tokenBalances
-            });
-            
-            setInvestments(investments);
-            setAccountData(balanceResponse.data);
-          }
+          // Calculate portfolio metrics
+          const totalValue = portfolioData.totalValue || 0;
+          const initialInvestment = portfolioData.holdings.reduce((sum, holding) => sum + holding.amount, 0);
+          const changeAmount = totalValue - initialInvestment;
+          const changePercent = initialInvestment > 0 ? (changeAmount / initialInvestment) * 100 : 0;
+          
+          // Get token balances
+          const tokenBalance = {};
+          portfolioData.holdings.forEach(holding => {
+            const symbol = holding.projectType.substring(0, 3).toUpperCase();
+            tokenBalance[symbol] = holding.units;
+          });
+          
+          setPortfolio({
+            totalValue,
+            initialInvestment,
+            changeAmount,
+            changePercent,
+            tokenBalance
+          });
         }
+        
+        // Get user's investments
+        const investmentsResponse = await portfolioService.getUserInvestments(userId);
+        if (investmentsResponse?.success) {
+          const investmentsData = investmentsResponse.data;
+          
+          // Format investments for UI
+          const formattedInvestments = investmentsData.map(inv => ({
+            id: inv.id,
+            project: inv.projectName,
+            symbol: inv.projectType.substring(0, 3).toUpperCase(),
+            tokenId: inv.tokenId,
+            amount: inv.amount,
+            tokenValue: inv.price,
+            date: new Date(inv.timestamp).toISOString().split('T')[0],
+            totalValue: inv.units * inv.price,
+            changePercent: 0 // We don't have historical data yet
+          }));
+          
+          setInvestments(formattedInvestments);
+        }
+        
+        setIsLoading(false);
       } catch (err) {
         console.error('Error fetching portfolio data:', err);
         setError(err.message || 'Failed to load portfolio data');
+        setIsLoading(false);
         
         // Fallback to sample data
         setPortfolio({
@@ -189,18 +165,16 @@ const Portfolio = () => {
           },
           {
             id: 5,
-            project: 'Affordable Housing Kisumu',
+            project: 'Affordable Housing Kenya',
             symbol: 'AHK',
             tokenId: '0.0.5783121',
             amount: 110,
-            tokenValue: 38,
-            date: '2024-04-02',
-            totalValue: 4180,
-            changePercent: 5.4
+            tokenValue: 42,
+            date: '2024-01-25',
+            totalValue: 4620,
+            changePercent: 3.8
           }
         ]);
-      } finally {
-        setIsLoading(false);
       }
     };
     
@@ -250,6 +224,22 @@ const Portfolio = () => {
       </div>
     );
   }
+
+  const handleSimulateInvestment = async (projectId, amount) => {
+    try {
+      // In a real app, you would use the actual user ID from authentication
+      const userId = 'user-1743081696155'; // Demo user ID
+      const response = await portfolioService.simulateInvestment(userId, projectId, parseFloat(amount));
+      
+      alert(`Investment simulation successful! You've invested ${amount} KES. This is a demo, no actual investment was made.`);
+      
+      // Refresh portfolio data
+      fetchPortfolioData();
+    } catch (error) {
+      console.error('Investment simulation failed:', error);
+      alert(`Investment simulation failed: ${error.message || 'Unknown error'}`);
+    }
+  };
 
   return (
     <div className="space-y-8">
