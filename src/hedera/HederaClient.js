@@ -20,6 +20,7 @@ dotenv.config();
  */
 class HederaClient {
   constructor() {
+    this.isConfigured = false;
     this.initialize();
   }
 
@@ -67,7 +68,6 @@ class HederaClient {
     } catch (error) {
       console.error('Error initializing HederaClient:', error);
       this.isConfigured = false;
-      throw error;
     }
   }
   

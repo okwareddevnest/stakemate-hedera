@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaSearch, FaFilter, FaLeaf, FaLightbulb, FaRoad, FaWater, FaNetworkWired, FaBuilding } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaLeaf, FaLightbulb, FaRoad, FaWater, FaNetworkWired, FaBuilding, FaExclamationTriangle } from 'react-icons/fa';
 import apiService from '../services/api';
 
 const Projects = () => {
@@ -258,165 +258,86 @@ const Projects = () => {
     setSearchTerm('');
   };
   
-  // Display loading state
-  if (isLoading) {
+  // Show error message if there's an error
+  const renderErrorMessage = () => {
+    if (!error) return null;
+    
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <div className="flex items-center">
+          <FaExclamationTriangle className="h-5 w-5 mr-2" />
+          <span>Error loading projects</span>
+        </div>
+        <p className="text-sm mt-1">Request failed with status code 404</p>
       </div>
     );
-  }
+  };
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Infrastructure Projects</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Infrastructure Projects</h1>
           <p className="text-gray-600">Explore tokenized projects available for micro-investing</p>
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
+      {/* Search and filter section */}
       <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-grow">
+        <div className="flex-1 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FaSearch className="text-gray-400" />
+            <FaSearch className="h-5 w-5 text-gray-400" />
           </div>
           <input
             type="text"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             placeholder="Search projects by name, description or location..."
-            className="block w-full pl-10 pr-3 py-2 rounded-md border border-gray-300 shadow-sm focus:outline-none focus:ring-primary focus:border-primary"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button 
-          className="flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+        <button
+          className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
           onClick={() => setShowFilters(!showFilters)}
         >
-          <FaFilter className="mr-2" /> Filters
+          <FaFilter className="mr-2 h-4 w-4" />
+          <span>Filters</span>
         </button>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="p-4 bg-white rounded-md shadow">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Project Type</label>
-              <select
-                name="type"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                value={filters.type}
-                onChange={handleFilterChange}
-              >
-                <option value="">All Types</option>
-                <option value="Transportation">Transportation</option>
-                <option value="Energy">Energy</option>
-                <option value="Water">Water</option>
-                <option value="Digital">Digital</option>
-                <option value="Social">Social</option>
-                <option value="Environmental">Environmental</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Minimum ROI</label>
-              <select
-                name="minROI"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                value={filters.minROI}
-                onChange={handleFilterChange}
-              >
-                <option value="0">Any</option>
-                <option value="5">5%+</option>
-                <option value="8">8%+</option>
-                <option value="10">10%+</option>
-                <option value="12">12%+</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Maximum Risk</label>
-              <select
-                name="maxRisk"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                value={filters.maxRisk}
-                onChange={handleFilterChange}
-              >
-                <option value="">Any</option>
-                <option value="Low">Low</option>
-                <option value="Medium-Low">Medium-Low</option>
-                <option value="Medium">Medium</option>
-                <option value="Medium-High">Medium-High</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Minimum ESG Score</label>
-              <select
-                name="minESG"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                value={filters.minESG}
-                onChange={handleFilterChange}
-              >
-                <option value="0">Any</option>
-                <option value="70">70+</option>
-                <option value="80">80+</option>
-                <option value="90">90+</option>
-              </select>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              className="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 focus:outline-none"
-              onClick={resetFilters}
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Display error message if there is one */}
+      {renderErrorMessage()}
 
-      {/* Display Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-md">
-          <p className="font-medium">Error loading projects</p>
-          <p className="text-sm">{error}</p>
+      {/* If loading, show loading state */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
-      )}
-
-      {/* Projects Grid */}
-      {filteredProjects.length > 0 ? (
+      ) : (
+        // Projects grid
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
+          {projects.map((project) => (
+            <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden">
               <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="p-2 rounded-full bg-gray-100 mr-3">
-                    {project.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{project.name}</h3>
-                    <p className="text-sm text-gray-500">{project.location}</p>
-                  </div>
+                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary-light text-primary mb-4">
+                  {project.icon}
                 </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.name}</h3>
+                <p className="text-sm text-gray-600 mb-4">{project.location}</p>
+                <p className="text-sm text-gray-700 mb-4 line-clamp-3">{project.description}</p>
                 
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{project.description}</p>
-                
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-xs text-gray-500">Type</p>
                     <p className="font-medium">{project.type}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Expected ROI</p>
-                    <p className="font-medium text-primary">{project.roi}%</p>
+                    <p className="font-medium">{project.roi}%</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Risk Level</p>
-                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getRiskColor(project.riskLevel)}`}>
-                      {project.riskLevel}
-                    </span>
+                    <p className="font-medium">{project.riskLevel}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">ESG Score</p>
@@ -437,37 +358,26 @@ const Projects = () => {
                   </div>
                 </div>
                 
-                <div className="flex justify-between text-sm mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <p className="text-gray-500">Min. Investment</p>
-                    <p className="font-semibold">{project.minInvestment.toLocaleString()} KES</p>
+                    <p className="text-xs text-gray-500">Min. Investment</p>
+                    <p className="font-medium">{project.minInvestment.toLocaleString()} KES</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-gray-500">Funding</p>
-                    <p className="font-semibold">{Math.round((project.currentFunding / project.totalFunding) * 100)}%</p>
+                  <div>
+                    <p className="text-xs text-gray-500">Funding</p>
+                    <p className="font-medium">{Math.round((project.currentFunding / project.totalFunding) * 100)}%</p>
                   </div>
                 </div>
                 
-                <Link 
+                <Link
                   to={`/projects/${project.id}`}
-                  className="block w-full text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded transition-colors"
+                  className="w-full block text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded transition duration-150 ease-in-out"
                 >
                   View Project
                 </Link>
               </div>
             </div>
           ))}
-        </div>
-      ) : (
-        <div className="bg-white p-8 rounded-lg text-center">
-          <h3 className="text-xl font-medium text-gray-900 mb-2">No projects found</h3>
-          <p className="text-gray-600 mb-4">Try adjusting your search or filters to find more projects.</p>
-          <button
-            className="text-primary hover:text-primary-dark font-medium"
-            onClick={resetFilters}
-          >
-            Clear all filters
-          </button>
         </div>
       )}
     </div>

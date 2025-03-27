@@ -296,13 +296,17 @@ class DirectHederaController {
    */
   getClientStatus(req, res) {
     try {
+      // Get client status
+      const status = {
+        isConfigured: HederaClient.isConfigured || false,
+        accountId: HederaClient.isConfigured ? HederaClient.accountId : null,
+        network: process.env.HEDERA_NETWORK || 'testnet',
+        timestamp: new Date().toISOString()
+      };
+      
       return res.status(200).json({
         success: true,
-        data: {
-          isConfigured: HederaClient.isConfigured,
-          accountId: HederaClient.isConfigured ? HederaClient.accountId : null,
-          timestamp: new Date().toISOString()
-        }
+        data: status
       });
     } catch (error) {
       console.error('Error in getClientStatus:', error);

@@ -221,12 +221,17 @@ const Dashboard = () => {
       {/* Hedera Network Status */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex items-center">
-          <div className={`h-3 w-3 rounded-full mr-2 ${hederaStatus.isConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <h2 className="text-lg font-semibold">Hedera Network Status: {hederaStatus.isConfigured ? 'Connected' : 'Disconnected'}</h2>
+          <div className={`h-3 w-3 rounded-full mr-2 ${hederaStatus?.isConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <h2 className="text-lg font-semibold">Hedera Network Status: {hederaStatus?.isConfigured ? 'Connected' : 'Disconnected'}</h2>
         </div>
-        {hederaStatus.isConfigured && (
+        {hederaStatus?.isConfigured && (
           <p className="text-sm text-gray-600 mt-1">
             Connected to account: {hederaStatus.accountId} • Last updated: {new Date(hederaStatus.timestamp).toLocaleString()}
+          </p>
+        )}
+        {!hederaStatus?.isConfigured && (
+          <p className="text-sm text-gray-600 mt-1">
+            The Hedera network connection is not properly configured. Please check server configuration.
           </p>
         )}
       </div>
