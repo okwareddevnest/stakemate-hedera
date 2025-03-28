@@ -17,7 +17,7 @@ const NewLandingPage = () => {
 
   // Rotating words for the features section
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const rotatingWords = ["Stocks", "Bonds", "Trade", "Investments"];
+  const rotatingWords = ["Infrastructure Investment", "Portfolio Growth", "AI Automation"];
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
@@ -125,11 +125,20 @@ const NewLandingPage = () => {
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 font-josefin">
-              Infrastructure Investments
+              The All-In-One Hub for
             </h1>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text">
-              Made Simple
-            </h1>
+            <div className="h-16 mb-6">
+              {rotatingWords.map((word, index) => (
+                <h1 
+                  key={word}
+                  className={`text-4xl md:text-6xl font-bold font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text absolute left-0 right-0 transition-opacity duration-500 ${
+                    currentWordIndex === index ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  {word}
+                </h1>
+              ))}
+            </div>
             <p className="text-lg text-gray-600 mb-10 font-roboto">
               Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
             </p>
@@ -144,15 +153,48 @@ const NewLandingPage = () => {
           </div>
 
           {/* Navigation Icons */}
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-8 mt-20">
-            {navItems.map((item, index) => (
-              <Link to={item.path} key={index} className="flex flex-col items-center text-center group cursor-pointer">
-                <div className="bg-white p-4 rounded-xl mb-3 group-hover:bg-pink-50 transition-colors shadow-md">
-                  <item.icon className="w-6 h-6 text-pink-500" />
-                </div>
-                <span className="text-sm text-gray-600 group-hover:text-pink-500 transition-colors font-ubuntu">{item.name}</span>
-              </Link>
-            ))}
+          <div className="flex justify-center flex-wrap gap-8 mt-20">
+            <Link to="/dashboard" className="flex flex-col items-center text-center">
+              <div className="bg-pink-100 p-5 rounded-full mb-3 hover:bg-pink-200 transition-colors">
+                <Home className="w-6 h-6 text-pink-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-pink-500 transition-colors font-ubuntu">Dashboard</span>
+            </Link>
+            
+            <Link to="/projects" className="flex flex-col items-center text-center">
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <Shield className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Projects</span>
+            </Link>
+            
+            <Link to="/portfolio" className="flex flex-col items-center text-center">
+              <div className="bg-green-100 p-5 rounded-full mb-3 hover:bg-green-200 transition-colors">
+                <LineChart className="w-6 h-6 text-green-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-green-500 transition-colors font-ubuntu">Portfolio</span>
+            </Link>
+            
+            <Link to="/chat" className="flex flex-col items-center text-center">
+              <div className="bg-purple-100 p-5 rounded-full mb-3 hover:bg-purple-200 transition-colors">
+                <MessageSquare className="w-6 h-6 text-purple-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-purple-500 transition-colors font-ubuntu">AI Assistant</span>
+            </Link>
+            
+            <Link to="/learn" className="flex flex-col items-center text-center">
+              <div className="bg-pink-100 p-5 rounded-full mb-3 hover:bg-pink-200 transition-colors">
+                <GraduationCap className="w-6 h-6 text-pink-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-pink-500 transition-colors font-ubuntu">Learn</span>
+            </Link>
+            
+            <Link to="/profile" className="flex flex-col items-center text-center">
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Profile</span>
+            </Link>
           </div>
         </div>
       </section>
