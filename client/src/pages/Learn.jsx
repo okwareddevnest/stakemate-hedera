@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FaGraduationCap, FaHeart, FaShareAlt, FaChartLine, FaShieldAlt, FaLandmark, FaLeaf, FaRegClock, FaRegStar } from 'react-icons/fa';
 
 const Learn = () => {
@@ -178,9 +179,11 @@ const Learn = () => {
                 </div>
               </div>
               
-              <button className="mt-4 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors">
-                Start Learning
-              </button>
+              <Link to={`/course/${course.id}`}>
+                <button className="mt-4 w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors">
+                  Start Learning
+                </button>
+              </Link>
             </div>
           </div>
         ))}

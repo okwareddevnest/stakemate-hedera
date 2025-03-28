@@ -10,6 +10,7 @@ import Portfolio from './pages/Portfolio'
 import ChatInterface from './pages/ChatInterface'
 import Profile from './pages/Profile'
 import Learn from './pages/Learn'
+import CourseDetail from './pages/CourseDetail'
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -38,6 +39,7 @@ function App() {
                 <Route path="/chat" element={<ChatInterface />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/learn" element={<Learn />} />
+                <Route path="/course/:id" element={<CourseDetail />} />
               </Routes>
             </div>
           </main>
