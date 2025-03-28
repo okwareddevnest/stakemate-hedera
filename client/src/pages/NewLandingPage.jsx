@@ -18,13 +18,24 @@ const NewLandingPage = () => {
   // Rotating words for the features section
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const rotatingWords = ["Infrastructure Investment", "Portfolio Growth", "AI Automation"];
+  
+  // Rotating subtitles for features section
+  const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState(0);
+  const rotatingSubtitles = ["From confusion to clarity—on Hedera.", "Built for the bold."];
 
   useEffect(() => {
     const wordInterval = setInterval(() => {
       setCurrentWordIndex((prevIndex) => (prevIndex + 1) % rotatingWords.length);
-    }, 2000);
+    }, 4000);
 
-    return () => clearInterval(wordInterval);
+    const subtitleInterval = setInterval(() => {
+      setCurrentSubtitleIndex((prevIndex) => (prevIndex + 1) % rotatingSubtitles.length);
+    }, 5000);
+
+    return () => {
+      clearInterval(wordInterval);
+      clearInterval(subtitleInterval);
+    };
   }, []);
 
   // Pricing state
@@ -120,7 +131,51 @@ const NewLandingPage = () => {
       <TransparentNavbar navItems={navItems} />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 relative bg-gray-50">
+      <section className="pt-32 pb-16 relative bg-gray-50 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/2 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        
+        {/* Graffiti/Bubble elements */}
+        <div className="absolute top-16 right-[15%] w-24 h-24 opacity-10 animate-float">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#FF0066" d="M46.5,-58.2C59.3,-47.9,68.5,-33.4,73.3,-17C78.1,-0.6,78.5,17.7,71.1,32.3C63.7,46.9,48.5,57.9,32.4,65.1C16.4,72.3,-0.6,75.7,-19.4,73.8C-38.1,71.9,-58.7,64.7,-69.8,50.1C-80.9,35.5,-82.6,13.6,-79.9,-6.8C-77.1,-27.1,-69.9,-45.9,-56.7,-56.7C-43.5,-67.4,-24.3,-70.2,-5.7,-63.9C12.9,-57.5,33.8,-68.5,46.5,-58.2Z" transform="translate(100 100)" />
+          </svg>
+        </div>
+        <div className="absolute top-[40%] left-[5%] w-28 h-28 opacity-15 animate-float animation-delay-3000">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#3B82F6" d="M42.1,-68.5C53.9,-57.7,62.4,-44.8,69.6,-30.7C76.7,-16.6,82.5,-1.2,80.6,13.1C78.8,27.4,69.3,40.6,57.7,51.8C46.1,63,32.3,72.1,16.9,76.9C1.6,81.7,-15.4,82.2,-30.2,76.5C-45.1,70.9,-57.9,59.2,-67.8,45C-77.8,30.8,-84.8,14.1,-85,0C-85.2,-14.1,-78.6,-28.3,-68.9,-39.1C-59.2,-49.9,-46.3,-57.4,-33.6,-67.5C-20.9,-77.7,-8.5,-90.5,3.5,-96.1C15.5,-101.7,31,-101,42.1,-68.5Z" transform="translate(100 100)" />
+          </svg>
+        </div>
+        <div className="absolute bottom-28 right-[20%] w-20 h-20 opacity-20 animate-float animation-delay-2000">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#A855F7" d="M49.5,-57.6C65.2,-47.8,79.9,-33.1,81.8,-16.9C83.7,-0.8,72.9,16.7,62.5,33.2C52.1,49.7,42.2,65.3,27.4,72.8C12.7,80.3,-6.8,79.9,-22.4,72.3C-37.9,64.8,-49.5,50.3,-58.1,34.5C-66.6,18.8,-72.1,1.7,-69.6,-14.3C-67.1,-30.3,-56.7,-45.2,-43.4,-55.5C-30.1,-65.8,-13.9,-71.5,1.8,-73.7C17.5,-75.9,33.9,-67.5,49.5,-57.6Z" transform="translate(100 100)" />
+          </svg>
+        </div>
+        
+        {/* Graffiti text elements */}
+        <div className="absolute top-[20%] right-[30%] opacity-5 rotate-12">
+          <svg width="150" height="80" viewBox="0 0 150 80">
+            <text x="0" y="50" fontFamily="Arial" fontSize="42" fontWeight="bold" fill="#FF0066" className="font-josefin">STAKE</text>
+          </svg>
+        </div>
+        <div className="absolute bottom-[25%] left-[18%] opacity-5 -rotate-6">
+          <svg width="180" height="80" viewBox="0 0 180 80">
+            <text x="0" y="50" fontFamily="Arial" fontSize="38" fontWeight="bold" fill="#3B82F6" className="font-josefin">HEDERA</text>
+          </svg>
+        </div>
+        
+        {/* Multiple floating bubbles */}
+        <div className="absolute inset-0">
+          <div className="bubble bubble-1"></div>
+          <div className="bubble bubble-2"></div>
+          <div className="bubble bubble-3"></div>
+          <div className="bubble bubble-4"></div>
+          <div className="bubble bubble-5"></div>
+          <div className="bubble bubble-6"></div>
+        </div>
+        
         <div className="absolute inset-0 bg-gradient-conic from-pink-100 via-blue-100 to-pink-50 opacity-30"></div>
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-4xl mx-auto">
@@ -131,7 +186,7 @@ const NewLandingPage = () => {
               {rotatingWords.map((word, index) => (
                 <h1 
                   key={word}
-                  className={`text-4xl md:text-6xl font-bold font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text absolute left-0 right-0 transition-opacity duration-500 ${
+                  className={`text-4xl md:text-6xl font-bold font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text absolute left-0 right-0 transition-opacity duration-1000 ${
                     currentWordIndex === index ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
@@ -201,34 +256,32 @@ const NewLandingPage = () => {
 
       {/* Features Section */}
       <section className="py-20 bg-white relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute top-10 right-0 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute bottom-10 left-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float animation-delay-3000"></div>
+        
         {/* Decorative elements */}
         <div className="absolute top-10 right-0 w-24 h-24 text-blue-100">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 22a10 10 0 100-20 10 10 0 000 20z"></path>
           </svg>
         </div>
-        <div className="absolute bottom-10 left-10 w-32 h-32 text-pink-100">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <rect width="20" height="20" x="2" y="2" rx="4"></rect>
-          </svg>
-        </div>
-        
         <div className="container mx-auto px-4 relative">
           <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
             {/* Left side text content */}
             <div className="w-full md:w-1/2">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-gray-900 font-josefin leading-tight">
-                Everything you need to navigate
+                Simplify your investment
               </h2>
               <div className="h-16 relative">
-                {rotatingWords.map((word, index) => (
+                {rotatingSubtitles.map((subtitle, index) => (
                   <h2 
-                    key={word}
-                    className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text font-josefin absolute transition-opacity duration-500 ${
-                      currentWordIndex === index ? 'opacity-100' : 'opacity-0'
+                    key={subtitle}
+                    className={`text-3xl sm:text-3xl lg:text-4xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text font-josefin absolute transition-opacity duration-1000 ${
+                      currentSubtitleIndex === index ? 'opacity-100' : 'opacity-0'
                     }`}
                   >
-                    {word} on Hedera
+                    {subtitle}
                   </h2>
                 ))}
               </div>
@@ -251,55 +304,71 @@ const NewLandingPage = () => {
               </div>
               
               {/* Card 1 - Analysis */}
-              <div className="bg-pink-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
-                <div className="bg-pink-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
-                  <BarChart3 className="w-6 h-6 text-pink-500" />
+              <div className="bg-pink-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card overflow-hidden">
+                <div className="absolute inset-0 transition-all duration-500 group-hover:opacity-20 group-hover:scale-110 bg-cover bg-center" 
+                     style={{backgroundImage: "url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')"}}></div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="bg-pink-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                    <BarChart3 className="w-6 h-6 text-pink-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin backdrop-blur-sm bg-white/30 p-1 rounded group-hover:bg-transparent">
+                    Analyze Trade & Risk
+                  </h3>
+                  <p className="text-gray-600 font-roboto transition-all duration-300 opacity-0 group-hover:opacity-100 mt-auto backdrop-blur-sm bg-white/60 p-2 rounded">
+                    Put the power in your hands to analyze investments and understand risks with our intuitive tools.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
-                  Analyze Trade & Risk
-                </h3>
-                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
-                  Put the power in your hands to analyze investments and understand risks with our intuitive tools.
-                </p>
               </div>
 
               {/* Card 2 - Portfolio */}
-              <div className="bg-blue-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
-                <div className="bg-blue-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
-                  <Briefcase className="w-6 h-6 text-blue-500" />
+              <div className="bg-blue-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card overflow-hidden">
+                <div className="absolute inset-0 transition-all duration-500 group-hover:opacity-20 group-hover:scale-110 bg-cover bg-center" 
+                     style={{backgroundImage: "url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')"}}></div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="bg-blue-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                    <Briefcase className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin backdrop-blur-sm bg-white/30 p-1 rounded group-hover:bg-transparent">
+                    Portfolio Advisory
+                  </h3>
+                  <p className="text-gray-600 font-roboto transition-all duration-300 opacity-0 group-hover:opacity-100 mt-auto backdrop-blur-sm bg-white/60 p-2 rounded">
+                    Build diversified portfolios with expert guidance and recommendations tailored to your goals.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
-                  Portfolio Advisory
-                </h3>
-                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
-                  Build diversified portfolios with expert guidance and recommendations tailored to your goals.
-                </p>
               </div>
 
               {/* Card 3 - Learning */}
-              <div className="bg-green-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
-                <div className="bg-green-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
-                  <GraduationCap className="w-6 h-6 text-green-500" />
+              <div className="bg-green-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card overflow-hidden">
+                <div className="absolute inset-0 transition-all duration-500 group-hover:opacity-20 group-hover:scale-110 bg-cover bg-center" 
+                     style={{backgroundImage: "url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')"}}></div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="bg-green-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                    <GraduationCap className="w-6 h-6 text-green-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin backdrop-blur-sm bg-white/30 p-1 rounded group-hover:bg-transparent">
+                    Trade Education
+                  </h3>
+                  <p className="text-gray-600 font-roboto transition-all duration-300 opacity-0 group-hover:opacity-100 mt-auto backdrop-blur-sm bg-white/60 p-2 rounded">
+                    Learn investment strategies and risk analysis through our comprehensive educational resources.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
-                  Trade Education
-                </h3>
-                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
-                  Learn investment strategies and risk analysis through our comprehensive educational resources.
-                </p>
               </div>
 
               {/* Card 4 - AI Assistant */}
-              <div className="bg-purple-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
-                <div className="bg-purple-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
-                  <BrainCircuit className="w-6 h-6 text-purple-500" />
+              <div className="bg-purple-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card overflow-hidden">
+                <div className="absolute inset-0 transition-all duration-500 group-hover:opacity-20 group-hover:scale-110 bg-cover bg-center" 
+                     style={{backgroundImage: "url('https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')"}}></div>
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="bg-purple-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                    <BrainCircuit className="w-6 h-6 text-purple-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin backdrop-blur-sm bg-white/30 p-1 rounded group-hover:bg-transparent">
+                    StakeMate.AI
+                  </h3>
+                  <p className="text-gray-600 font-roboto transition-all duration-300 opacity-0 group-hover:opacity-100 mt-auto backdrop-blur-sm bg-white/60 p-2 rounded">
+                    AI assistant that automates risk assessment and staking decisions, even tipping you on opportunities.
+                  </p>
                 </div>
-                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
-                  StakeMate.AI
-                </h3>
-                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
-                  AI assistant that automates risk assessment and staking decisions, even tipping you on opportunities.
-                </p>
               </div>
             </div>
           </div>
@@ -590,6 +659,102 @@ const NewLandingPage = () => {
             <div className="overflow-hidden">
               <div className="animate-slide-in-right text-4xl font-bold mb-2 text-white font-josefin">+94k</div>
               <div className="text-sm text-pink-100 font-ubuntu">Active Investors</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Partners Marquee */}
+      <section className="py-12 bg-gray-50 overflow-hidden">
+        <div className="mb-6 text-center">
+          <h3 className="text-2xl font-bold text-gray-800 font-josefin">Trusted by Industry Leaders</h3>
+        </div>
+        <div className="relative flex items-center h-20">
+          {/* First Marquee - Left to Right */}
+          <div className="flex animate-marquee items-center">
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Hedera</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Hashport</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">WalletConnect</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Akord</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">HBAR Foundation</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">European Union</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Swirlds Labs</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">SaucerSwap</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Second Marquee - Duplicate for continuous effect */}
+          <div className="flex animate-marquee2 items-center absolute left-0">
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Hedera</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Hashport</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">WalletConnect</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Akord</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">HBAR Foundation</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">European Union</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">Swirlds Labs</span>
+              </div>
+            </div>
+            <div className="mx-10 flex items-center justify-center">
+              <div className="h-10 min-w-[100px] flex items-center justify-center">
+                <span className="text-gray-800 font-semibold">SaucerSwap</span>
+              </div>
             </div>
           </div>
         </div>
