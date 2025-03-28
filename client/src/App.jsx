@@ -8,6 +8,7 @@ import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import Portfolio from './pages/Portfolio'
 import ChatInterface from './pages/ChatInterface'
+import Profile from './pages/Profile'
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/portfolio" element={<Portfolio />} />
                 <Route path="/chat" element={<ChatInterface />} />
+                <Route path="/profile" element={<Profile />} />
               </Routes>
             </div>
           </main>
