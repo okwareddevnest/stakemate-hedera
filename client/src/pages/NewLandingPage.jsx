@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check } from 'lucide-react';
+import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check, TrendingUp, Wallet, Building, BarChart3, BrainCircuit, Briefcase } from 'lucide-react';
 import TransparentNavbar from '../components/layout/TransparentNavbar';
 import FooterNew from '../components/layout/FooterNew';
 
@@ -14,6 +14,18 @@ const NewLandingPage = () => {
     { name: 'Learn', icon: GraduationCap, path: '/learn' },
     { name: 'Profile', icon: User, path: '/profile' }
   ];
+
+  // Rotating words for the features section
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const rotatingWords = ["Stocks", "Bonds", "Trade", "Investments"];
+
+  useEffect(() => {
+    const wordInterval = setInterval(() => {
+      setCurrentWordIndex((prevIndex) => (prevIndex + 1) % rotatingWords.length);
+    }, 2000);
+
+    return () => clearInterval(wordInterval);
+  }, []);
 
   // Pricing state
   const [billingAnnually, setBillingAnnually] = useState(false);
@@ -113,10 +125,10 @@ const NewLandingPage = () => {
         <div className="container mx-auto px-4 relative">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 font-josefin">
-              The All-in-One Hub for
+              Infrastructure Investments
             </h1>
             <h1 className="text-4xl md:text-6xl font-bold mb-6 font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text">
-              Infrastructure Investments
+              Made Simple
             </h1>
             <p className="text-lg text-gray-600 mb-10 font-roboto">
               Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
@@ -145,8 +157,115 @@ const NewLandingPage = () => {
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="py-20 bg-white relative overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute top-10 right-0 w-24 h-24 text-blue-100">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 22a10 10 0 100-20 10 10 0 000 20z"></path>
+          </svg>
+        </div>
+        <div className="absolute bottom-10 left-10 w-32 h-32 text-pink-100">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <rect width="20" height="20" x="2" y="2" rx="4"></rect>
+          </svg>
+        </div>
+        
+        <div className="container mx-auto px-4 relative">
+          <div className="flex flex-col md:flex-row items-center gap-8 md:gap-16">
+            {/* Left side text content */}
+            <div className="w-full md:w-1/2">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-gray-900 font-josefin leading-tight">
+                Everything you need to navigate
+              </h2>
+              <div className="h-16 relative">
+                {rotatingWords.map((word, index) => (
+                  <h2 
+                    key={word}
+                    className={`text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text font-josefin absolute transition-opacity duration-500 ${
+                      currentWordIndex === index ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    {word} on Hedera
+                  </h2>
+                ))}
+              </div>
+              <p className="text-lg text-gray-600 mb-8 max-w-xl font-roboto">
+                We make investments easy. So you can focus on creating your financial future.
+              </p>
+            </div>
+
+            {/* Right side feature cards */}
+            <div className="w-full md:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+              {/* NFT decorative elements */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 rotate-12 hidden md:block">
+                <div className="w-full h-full rounded-lg bg-blue-500 shadow-lg"></div>
+              </div>
+              <div className="absolute -bottom-8 right-20 w-24 h-24 -rotate-6 hidden md:block">
+                <div className="w-full h-full rounded-lg bg-pink-400 shadow-lg"></div>
+              </div>
+              <div className="absolute top-1/2 -right-6 w-16 h-16 rotate-45 hidden md:block">
+                <div className="w-full h-full rounded-lg bg-green-400 shadow-lg"></div>
+              </div>
+              
+              {/* Card 1 - Analysis */}
+              <div className="bg-pink-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
+                <div className="bg-pink-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                  <BarChart3 className="w-6 h-6 text-pink-500" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
+                  Analyze Trade & Risk
+                </h3>
+                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
+                  Put the power in your hands to analyze investments and understand risks with our intuitive tools.
+                </p>
+              </div>
+
+              {/* Card 2 - Portfolio */}
+              <div className="bg-blue-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
+                <div className="bg-blue-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                  <Briefcase className="w-6 h-6 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
+                  Portfolio Advisory
+                </h3>
+                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
+                  Build diversified portfolios with expert guidance and recommendations tailored to your goals.
+                </p>
+              </div>
+
+              {/* Card 3 - Learning */}
+              <div className="bg-green-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
+                <div className="bg-green-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                  <GraduationCap className="w-6 h-6 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
+                  Trade Education
+                </h3>
+                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
+                  Learn investment strategies and risk analysis through our comprehensive educational resources.
+                </p>
+              </div>
+
+              {/* Card 4 - AI Assistant */}
+              <div className="bg-purple-50 rounded-2xl p-6 transform transition-all duration-300 hover:scale-105 shadow-md relative z-10 group h-64 flex flex-col feature-card">
+                <div className="bg-purple-100 inline-block p-3 rounded-xl mb-4 transition-transform duration-500 group-hover:rotate-[360deg]">
+                  <BrainCircuit className="w-6 h-6 text-purple-500" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin">
+                  StakeMate.AI
+                </h3>
+                <p className="text-gray-600 font-roboto transition-opacity duration-300 opacity-0 group-hover:opacity-100 mt-auto">
+                  AI assistant that automates risk assessment and staking decisions, even tipping you on opportunities.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Dashboard Preview */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-xl p-4 shadow-2xl">
             <img 
@@ -159,11 +278,17 @@ const NewLandingPage = () => {
       </section>
 
       {/* Investment Cards */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold mb-12 text-center font-josefin">
-            <span className="bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text">
-              Infrastructure Investments
+            <span className="bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text flex items-center justify-center">
+              Why StakeMate <span className="ml-2 inline-block animate-spin"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9.5 19C13.0899 19 16 16.0899 16 12.5C16 8.91015 13.0899 6 9.5 6C5.91015 6 3 8.91015 3 12.5C3 16.0899 5.91015 19 9.5 19Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13.5 14C14.0523 14 14.5 13.5523 14.5 13C14.5 12.4477 14.0523 12 13.5 12C12.9477 12 12.5 12.4477 12.5 13C12.5 13.5523 12.9477 14 13.5 14Z" fill="currentColor"/>
+                <path d="M9.5 14C10.0523 14 10.5 13.5523 10.5 13C10.5 12.4477 10.0523 12 9.5 12C8.94772 12 8.5 12.4477 8.5 13C8.5 13.5523 8.94772 14 9.5 14Z" fill="currentColor"/>
+                <path d="M21 9L19 11L17 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 11V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg></span>
             </span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -412,16 +537,16 @@ const NewLandingPage = () => {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-white font-josefin">A tribe of passionate investors</h2>
           <div className="grid grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-bold mb-2 text-white font-josefin">+31</div>
+            <div className="overflow-hidden">
+              <div className="animate-slide-in-right text-4xl font-bold mb-2 text-white font-josefin">+31</div>
               <div className="text-sm text-pink-100 font-ubuntu">Infrastructure Projects</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold mb-2 text-white font-josefin">$50.8M</div>
+            <div className="overflow-hidden">
+              <div className="animate-slide-in-left text-4xl font-bold mb-2 text-white font-josefin">$50.8M</div>
               <div className="text-sm text-pink-100 font-ubuntu">Total Investment</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold mb-2 text-white font-josefin">+94k</div>
+            <div className="overflow-hidden">
+              <div className="animate-slide-in-right text-4xl font-bold mb-2 text-white font-josefin">+94k</div>
               <div className="text-sm text-pink-100 font-ubuntu">Active Investors</div>
             </div>
           </div>
