@@ -36,6 +36,34 @@ body {
   animation: fadeUp 0.5s ease-out forwards;
 }
 
+/* Rotate animation for FAQ icons */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.rotate-360 {
+  transform: rotate(360deg);
+}
+
+@keyframes rotateAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-rotate {
+  animation: rotateAnimation 1s ease-in-out;
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
 /* Custom styles */
 @layer base {
   body {
