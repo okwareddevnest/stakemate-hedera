@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins } from 'lucide-react';
+import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check } from 'lucide-react';
 import TransparentNavbar from '../components/layout/TransparentNavbar';
 import FooterNew from '../components/layout/FooterNew';
 
@@ -14,6 +14,9 @@ const NewLandingPage = () => {
     { name: 'Learn', icon: GraduationCap, path: '/learn' },
     { name: 'Profile', icon: User, path: '/profile' }
   ];
+
+  // Pricing state
+  const [billingAnnually, setBillingAnnually] = useState(false);
 
   // FAQ items
   const [openFaq, setOpenFaq] = useState(null);
@@ -192,6 +195,157 @@ const NewLandingPage = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-20 relative bg-gray-900 overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-white font-josefin">
+              SIMPLE, TRANSPARENT PRICING
+            </h2>
+            <p className="text-lg text-gray-300 font-roboto">
+              Change the plan that right for you. All plans include 30 days trial
+            </p>
+          </div>
+
+          {/* Billing toggle */}
+          <div className="flex justify-center items-center mb-12">
+            <span className={`text-sm mr-3 ${billingAnnually ? 'text-gray-400' : 'text-white font-medium'}`}>
+              MONTHLY
+            </span>
+            <button 
+              onClick={() => setBillingAnnually(!billingAnnually)}
+              className="relative inline-flex h-6 w-11 items-center rounded-full"
+            >
+              <span className={`toggle-bg transition-colors duration-300 ${billingAnnually ? 'bg-pink-500' : 'bg-gray-600'} inline-block h-6 w-11 rounded-full`}>
+                <span className={`toggle-dot transition-transform duration-300 absolute top-0.5 left-0.5 h-5 w-5 transform rounded-full bg-white ${billingAnnually ? 'translate-x-5' : ''}`}></span>
+              </span>
+            </button>
+            <span className={`text-sm ml-3 ${billingAnnually ? 'text-white font-medium' : 'text-gray-400'}`}>
+              ANNUALLY
+            </span>
+            <span className="ml-2 px-2 py-1 text-xs bg-pink-500 text-white rounded-sm font-bold">
+              SAVE 20%
+            </span>
+          </div>
+
+          {/* Pricing cards */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Base Plan */}
+            <div className="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
+              <div className="p-8">
+                <p className="text-gray-400 text-lg mb-1 font-josefin">Base</p>
+                <h3 className="text-5xl font-bold text-white mb-6 font-josefin">FREE</h3>
+                <p className="text-gray-400 mb-8 font-roboto">Unlock offers free plan for personal use</p>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>5 Basic Projects</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>Community Access</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>Basic Analytics</span>
+                  </div>
+                </div>
+
+                <button className="w-full py-3 px-4 border border-gray-600 text-gray-400 rounded-full font-ubuntu hover:bg-gray-700 transition-colors">
+                  Selected plan
+                </button>
+              </div>
+            </div>
+
+            {/* Premium Plan */}
+            <div className="bg-gray-800 rounded-3xl overflow-hidden shadow-xl transform scale-105 relative z-20">
+              {/* Animated background */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-full w-full">
+                  <div className="absolute top-0 left-1/4 w-64 h-64 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse"></div>
+                  <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+                </div>
+              </div>
+
+              {/* Glowing border */}
+              <div className="absolute inset-0 border border-pink-500 opacity-25 rounded-3xl"></div>
+
+              {/* Most popular badge */}
+              <div className="bg-pink-500 text-white text-xs font-semibold py-1 px-3 uppercase absolute right-8 top-4 rounded-sm font-ubuntu">
+                Most Popular
+              </div>
+
+              <div className="p-8 relative z-10">
+                <p className="text-pink-400 text-lg mb-1 font-josefin">Premium</p>
+                <h3 className="text-5xl font-bold text-white mb-2 font-josefin">
+                  ${billingAnnually ? '8' : '10'}
+                </h3>
+                <p className="text-gray-400 mb-8 font-roboto">/month</p>
+                <p className="text-gray-300 mb-8 font-roboto">For most businesses who want to optimize their investment experience</p>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center text-gray-200">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>20 Advanced Projects</span>
+                  </div>
+                  <div className="flex items-center text-gray-200">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>Premium Analytics</span>
+                  </div>
+                  <div className="flex items-center text-gray-200">
+                    <Check size={16} className="mr-3 text-pink-400" />
+                    <span>Advanced Data Retention</span>
+                  </div>
+                </div>
+
+                <button className="w-full py-3 px-4 bg-pink-500 hover:bg-pink-600 text-white rounded-full shadow-lg font-ubuntu transition-colors relative overflow-hidden shine-effect">
+                  <span className="relative z-10">Upgrade to Premium</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Unlimited Plan */}
+            <div className="bg-gray-800 rounded-3xl overflow-hidden shadow-xl">
+              <div className="p-8">
+                <p className="text-blue-400 text-lg mb-1 font-josefin">Unlimited</p>
+                <h3 className="text-5xl font-bold text-white mb-2 font-josefin">
+                  ${billingAnnually ? '20' : '25'}
+                </h3>
+                <p className="text-gray-400 mb-8 font-roboto">/month</p>
+                <p className="text-gray-300 mb-8 font-roboto">Unlock the most powerful investment platform in the ecosystem</p>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-blue-400" />
+                    <span>Unlimited Projects</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-blue-400" />
+                    <span>Premium Events Access</span>
+                  </div>
+                  <div className="flex items-center text-gray-300">
+                    <Check size={16} className="mr-3 text-blue-400" />
+                    <span>Dedicated Support Team</span>
+                  </div>
+                </div>
+
+                <button className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-pink-500 hover:from-blue-600 hover:to-pink-600 text-white rounded-full shadow-lg font-ubuntu transition-colors">
+                  Upgrade to Unlimited
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
