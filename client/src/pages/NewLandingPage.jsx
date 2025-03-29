@@ -166,106 +166,141 @@ const NewLandingPage = () => {
       />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 relative bg-gray-50 overflow-hidden">
+      <section className="pt-24 pb-16 relative bg-gray-50 overflow-hidden">
         {/* Animated background elements */}
-        <div className="absolute top-20 left-10 w-64 h-64 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/2 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-64 h-64 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-1/2 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         
-        {/* Graffiti/Bubble elements */}
-        <div className="absolute top-16 right-[15%] w-24 h-24 opacity-10 animate-float">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#FF0066" d="M46.5,-58.2C59.3,-47.9,68.5,-33.4,73.3,-17C78.1,-0.6,78.5,17.7,71.1,32.3C63.7,46.9,48.5,57.9,32.4,65.1C16.4,72.3,-0.6,75.7,-19.4,73.8C-38.1,71.9,-58.7,64.7,-69.8,50.1C-80.9,35.5,-82.6,13.6,-79.9,-6.8C-77.1,-27.1,-69.9,-45.9,-56.7,-56.7C-43.5,-67.4,-24.3,-70.2,-5.7,-63.9C12.9,-57.5,33.8,-68.5,46.5,-58.2Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-        <div className="absolute top-[40%] left-[5%] w-28 h-28 opacity-15 animate-float animation-delay-3000">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#3B82F6" d="M42.1,-68.5C53.9,-57.7,62.4,-44.8,69.6,-30.7C76.7,-16.6,82.5,-1.2,80.6,13.1C78.8,27.4,69.3,40.6,57.7,51.8C46.1,63,32.3,72.1,16.9,76.9C1.6,81.7,-15.4,82.2,-30.2,76.5C-45.1,70.9,-57.9,59.2,-67.8,45C-77.8,30.8,-84.8,14.1,-85,0C-85.2,-14.1,-78.6,-28.3,-68.9,-39.1C-59.2,-49.9,-46.3,-57.4,-33.6,-67.5C-20.9,-77.7,-8.5,-90.5,3.5,-96.1C15.5,-101.7,31,-101,42.1,-68.5Z" transform="translate(100 100)" />
-          </svg>
-        </div>
-        <div className="absolute bottom-28 right-[20%] w-20 h-20 opacity-20 animate-float animation-delay-2000">
-          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path fill="#A855F7" d="M49.5,-57.6C65.2,-47.8,79.9,-33.1,81.8,-16.9C83.7,-0.8,72.9,16.7,62.5,33.2C52.1,49.7,42.2,65.3,27.4,72.8C12.7,80.3,-6.8,79.9,-22.4,72.3C-37.9,64.8,-49.5,50.3,-58.1,34.5C-66.6,18.8,-72.1,1.7,-69.6,-14.3C-67.1,-30.3,-56.7,-45.2,-43.4,-55.5C-30.1,-65.8,-13.9,-71.5,1.8,-73.7C17.5,-75.9,33.9,-67.5,49.5,-57.6Z" transform="translate(100 100)" />
-          </svg>
-        </div>
+        {/* Graffiti/Bubble text elements */}
+        <div className="absolute top-[15%] left-[5%] text-8xl font-extrabold text-blue-200 opacity-10 rotate-[-15deg] filter blur-sm animate-float">TRADE</div>
+        <div className="absolute top-[40%] right-[8%] text-7xl font-extrabold text-green-200 opacity-10 rotate-[10deg] filter blur-sm animate-float animation-delay-2000">INVEST</div>
+        <div className="absolute bottom-[15%] left-[15%] text-6xl font-extrabold text-blue-200 opacity-10 rotate-[-5deg] filter blur-sm animate-float animation-delay-3000">GROW</div>
         
-        {/* Graffiti text elements */}
-        <div className="absolute top-[20%] right-[30%] opacity-5 rotate-12">
-          <svg width="150" height="80" viewBox="0 0 150 80">
-            <text x="0" y="50" fontFamily="Arial" fontSize="42" fontWeight="bold" fill="#FF0066" className="font-josefin">STAKE</text>
-          </svg>
-        </div>
-        <div className="absolute bottom-[25%] left-[18%] opacity-5 -rotate-6">
-          <svg width="180" height="80" viewBox="0 0 180 80">
-            <text x="0" y="50" fontFamily="Arial" fontSize="38" fontWeight="bold" fill="#3B82F6" className="font-josefin">HEDERA</text>
-          </svg>
-        </div>
-        
-        {/* Multiple floating bubbles */}
-        <div className="absolute inset-0">
-          <div className="bubble bubble-1"></div>
-          <div className="bubble bubble-2"></div>
-          <div className="bubble bubble-3"></div>
-          <div className="bubble bubble-4"></div>
-          <div className="bubble bubble-5"></div>
-          <div className="bubble bubble-6"></div>
-        </div>
-        
-        <div className="absolute inset-0 bg-gradient-conic from-pink-100 via-blue-100 to-pink-50 opacity-30"></div>
+        <div className="absolute inset-0 bg-gradient-conic from-blue-100 via-green-100 to-blue-50 opacity-30"></div>
         <div className="container mx-auto px-4 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 font-josefin">
-              The All-In-One Hub for
-            </h1>
-            <div className="h-16 mb-6">
-              {rotatingWords.map((word, index) => (
-                <h1 
-                  key={word}
-                  className={`text-4xl md:text-6xl font-bold font-josefin bg-gradient-to-r from-pink-500 to-blue-500 text-transparent bg-clip-text absolute left-0 right-0 transition-opacity duration-1000 ${
-                    currentWordIndex === index ? 'opacity-100' : 'opacity-0'
-                  }`}
-                >
-                  {word}
-                </h1>
-              ))}
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            {/* Left Side - Text Content */}
+            <div className="md:w-5/12 mb-10 md:mb-0 text-left">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 text-gray-900 font-josefin leading-tight">
+                <span className="bg-gradient-to-r from-blue-500 to-green-500 text-transparent bg-clip-text font-light">All-In-One Hub</span>
+              </h1>
+              <p className="text-lg text-gray-600 mb-8 font-roboto max-w-lg">
+                Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
+              </p>
+              
+              {/* Connect Form */}
+              <div className="bg-white p-6 rounded-xl shadow-md">
+                <h3 className="text-xl font-semibold mb-4 font-josefin">Connect your Hedera account</h3>
+                <div className="flex flex-col space-y-4">
+                  <div>
+                    <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">Hedera Account ID</label>
+                    <input 
+                      type="text" 
+                      id="accountId" 
+                      placeholder="0.0.12345" 
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Enter your Hedera account ID (e.g., 0.0.12345)</p>
+                  </div>
+                  <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full font-medium font-ubuntu flex items-center justify-center shadow-md transition-colors">
+                    Connect <span className="ml-2">→</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <p className="text-lg text-gray-600 mb-10 font-roboto">
-              Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
-            </p>
-            <div className="flex gap-4 justify-center">
-              {isAuthenticated ? (
-                <Link
-                  to="/dashboard"
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
-                >
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <button 
-                    onClick={handleShowRegister}
-                    className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
-                  >
-                    Get Started
-                  </button>
-                  <button 
-                    onClick={handleShowLogin}
-                    className="px-8 py-3 bg-transparent text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                </>
-              )}
+            
+            {/* Right Side - AI Visualization */}
+            <div className="md:w-7/12 relative h-[450px]">
+              {/* Central AI Avatar */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="w-40 h-40 bg-blue-500 rounded-full flex items-center justify-center shadow-lg pulse-animation">
+                  <div className="w-36 h-36 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                    {/* StakeMate AI Agent Logo */}
+                    <div className="w-24 h-24 relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="w-full h-full">
+                        <rect x="40" y="40" width="120" height="120" rx="20" fill="#3B82F6" />
+                        <circle cx="70" cy="85" r="10" fill="white" />
+                        <circle cx="130" cy="85" r="10" fill="white" />
+                        <path d="M70 120 Q100 150 130 120" stroke="white" strokeWidth="8" fill="none" strokeLinecap="round" />
+                        <path d="M100 30 L100 10 Q100 0 110 0 L130 0 Q140 0 140 10 L140 20" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
+                        <circle cx="100" cy="10" r="5" fill="#3B82F6" />
+                        <path d="M40 100 L20 100 Q0 100 0 120 L0 140 Q0 160 20 160 L30 160" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
+                        <path d="M160 100 L180 100 Q200 100 200 120 L200 140 Q200 160 180 160 L170 160" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Connecting Lines */}
+              <div className="absolute top-0 left-0 w-full h-full z-10">
+                <svg className="w-full h-full" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M250,200 L120,100" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
+                  <path d="M250,200 L400,120" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
+                  <path d="M250,200 L250,350" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
+                  <defs>
+                    <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#3B82F6" />
+                      <stop offset="100%" stopColor="#10B981" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              
+              {/* Feature 1: AI Trading Analysis */}
+              <div className="absolute top-[50px] left-[70px] animate-float">
+                <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <div className="bg-blue-100 p-3 rounded-full mb-2 inline-block">
+                    <BarChart3 className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="text-sm font-bold">AI Trading Analysis</h3>
+                  <p className="text-xs text-gray-500">Predictive insights for optimal trades</p>
+                </div>
+              </div>
+              
+              {/* Feature 2: Hedera Integration */}
+              <div className="absolute top-[100px] right-[70px] animate-float animation-delay-2000">
+                <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <div className="bg-green-100 p-3 rounded-full mb-2 inline-block">
+                    <svg className="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M7 12H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M12 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-sm font-bold">Hedera Blockchain</h3>
+                  <p className="text-xs text-gray-500">Secure, efficient IaS technology</p>
+                </div>
+              </div>
+              
+              {/* Feature 3: Analytics */}
+              <div className="absolute bottom-[50px] left-1/2 transform -translate-x-1/2 animate-float animation-delay-3000">
+                <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <div className="bg-blue-100 p-3 rounded-full mb-2 inline-block">
+                    <LineChart className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <h3 className="text-sm font-bold">Advanced Analytics</h3>
+                  <p className="text-xs text-gray-500">Data-driven investment decisions</p>
+                </div>
+              </div>
+              
+              {/* Background Elements */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-48 h-48 border-4 border-blue-200 rounded-full opacity-20 animate-ping-slow"></div>
+                <div className="w-64 h-64 border-4 border-green-200 rounded-full opacity-20 animate-ping-slow animation-delay-1000"></div>
+                <div className="w-80 h-80 border-4 border-blue-200 rounded-full opacity-20 animate-ping-slow animation-delay-2000"></div>
+              </div>
             </div>
           </div>
-
+          
           {/* Navigation Icons */}
           <div className="flex justify-center flex-wrap gap-8 mt-20">
             <Link to="/dashboard" className="flex flex-col items-center text-center">
-              <div className="bg-pink-100 p-5 rounded-full mb-3 hover:bg-pink-200 transition-colors">
-                <Home className="w-6 h-6 text-pink-600" />
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <Home className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600 hover:text-pink-500 transition-colors font-ubuntu">Dashboard</span>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Dashboard</span>
             </Link>
             
             <Link to="/projects" className="flex flex-col items-center text-center">
@@ -276,24 +311,24 @@ const NewLandingPage = () => {
             </Link>
             
             <Link to="/portfolio" className="flex flex-col items-center text-center">
-              <div className="bg-green-100 p-5 rounded-full mb-3 hover:bg-green-200 transition-colors">
-                <LineChart className="w-6 h-6 text-green-600" />
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <LineChart className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600 hover:text-green-500 transition-colors font-ubuntu">Portfolio</span>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Portfolio</span>
             </Link>
             
             <Link to="/chat" className="flex flex-col items-center text-center">
-              <div className="bg-purple-100 p-5 rounded-full mb-3 hover:bg-purple-200 transition-colors">
-                <MessageSquare className="w-6 h-6 text-purple-600" />
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <MessageSquare className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600 hover:text-purple-500 transition-colors font-ubuntu">AI Assistant</span>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">AI Assistant</span>
             </Link>
             
             <Link to="/learn" className="flex flex-col items-center text-center">
-              <div className="bg-pink-100 p-5 rounded-full mb-3 hover:bg-pink-200 transition-colors">
-                <GraduationCap className="w-6 h-6 text-pink-600" />
+              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
+                <GraduationCap className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="text-sm text-gray-600 hover:text-pink-500 transition-colors font-ubuntu">Learn</span>
+              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Learn</span>
             </Link>
             
             <Link to="/profile" className="flex flex-col items-center text-center">
@@ -428,14 +463,41 @@ const NewLandingPage = () => {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="bg-white rounded-xl p-4 shadow-2xl">
-            <img 
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80"
-              alt="Analytics Dashboard"
-              className="rounded-lg w-full"
-            />
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100 transform hover:scale-[1.02] transition-transform duration-500 animate-float-slow overflow-hidden">
+              <div className="relative rounded-2xl overflow-hidden shadow-inner">
+                <img 
+                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Analytics Dashboard"
+                  className="w-full rounded-2xl border border-gray-100"
+                />
+                {/* Overlay gradient for depth */}
+                <div className="absolute inset-0 rounded-2xl shadow-inner pointer-events-none bg-gradient-to-tr from-transparent via-transparent to-white/10"></div>
+              </div>
+              
+              {/* Feature highlight dots */}
+              <div className="absolute top-8 right-8 w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="absolute bottom-12 left-12 w-4 h-4 bg-pink-500 rounded-full animate-pulse animation-delay-1000"></div>
+              <div className="absolute top-1/3 left-12 w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-2000"></div>
+            </div>
+            
+            {/* Labels */}
+            <div className="flex flex-wrap justify-center mt-8 gap-8">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Real-time Analytics</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Portfolio Performance</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Infrastructure Monitoring</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -492,10 +554,12 @@ const NewLandingPage = () => {
         {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob"></div>
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
         </div>
 
+        {/* Digital circuit pattern overlay */}
+        <div className="absolute inset-0 bg-circuit-pattern opacity-5"></div>
+        
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto mb-12">
             <h2 className="text-4xl font-bold mb-4 text-white font-josefin">
@@ -716,96 +780,116 @@ const NewLandingPage = () => {
         </div>
       </section>
 
-      {/* Partners Marquee */}
-      <section className="py-12 bg-gray-50 overflow-hidden">
-        <div className="mb-6 text-center">
-          <h3 className="text-2xl font-bold text-gray-800 font-josefin">Trusted by Industry Leaders</h3>
+      {/* Partners Marquee / AI Agent Banner */}
+      <section className="py-8 bg-gray-100 overflow-hidden relative">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute bottom-1/3 right-1/4 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
         </div>
-        <div className="relative flex items-center h-20">
-          {/* First Marquee - Left to Right */}
-          <div className="flex animate-marquee items-center">
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Hedera</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Hashport</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">WalletConnect</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Akord</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">HBAR Foundation</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">European Union</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Swirlds Labs</span>
-              </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">SaucerSwap</span>
-              </div>
-            </div>
+
+        {/* Digital circuit pattern overlay */}
+        <div className="absolute inset-0 bg-circuit-pattern opacity-5"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="mb-6 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 font-josefin mb-2">
+              <span className="bg-gradient-to-r from-blue-500 to-pink-500 bg-clip-text text-transparent">
+                StakeMate
+              </span>
+            </h1>
+            <h2 className="text-2xl md:text-3xl font-light text-gray-700 font-josefin mb-4">
+              Decentralized AI Agent
+            </h2>
+            <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-pink-500 mx-auto mb-4"></div>
           </div>
           
-          {/* Second Marquee - Duplicate for continuous effect */}
-          <div className="flex animate-marquee2 items-center absolute left-0">
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Hedera</span>
+          <div className="relative flex items-center h-14">
+            {/* First Marquee - Left to Right */}
+            <div className="flex animate-marquee items-center">
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Hedera</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Hashport</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">WalletConnect</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Akord</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">HBAR Foundation</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">European Union</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Swirlds Labs</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">SaucerSwap</span>
+                </div>
               </div>
             </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Hashport</span>
+            
+            {/* Second Marquee - Duplicate for continuous effect */}
+            <div className="flex animate-marquee2 items-center absolute left-0">
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Hedera</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">WalletConnect</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Hashport</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Akord</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">WalletConnect</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">HBAR Foundation</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Akord</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">European Union</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">HBAR Foundation</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">Swirlds Labs</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">European Union</span>
+                </div>
               </div>
-            </div>
-            <div className="mx-10 flex items-center justify-center">
-              <div className="h-10 min-w-[100px] flex items-center justify-center">
-                <span className="text-gray-800 font-semibold">SaucerSwap</span>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">Swirlds Labs</span>
+                </div>
+              </div>
+              <div className="mx-8 flex items-center justify-center">
+                <div className="h-8 min-w-[80px] flex items-center justify-center">
+                  <span className="text-gray-600 font-medium">SaucerSwap</span>
+                </div>
               </div>
             </div>
           </div>
