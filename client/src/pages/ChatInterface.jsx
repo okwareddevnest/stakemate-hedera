@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaPaperPlane, FaRobot, FaUser, FaSpinner } from 'react-icons/fa';
+import { FaPaperPlane, FaRobot, FaUser, FaSpinner, FaLeaf, FaWind, FaSun, FaChartLine } from 'react-icons/fa';
 
 const ChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([
-    'How do infrastructure projects work?',
-    'What are the risks in infrastructure investing?',
-    'Tell me about tokenization',
-    'How can I build a diversified portfolio?'
+    'What is a green bond?',
+    'Analyze infrastructure projects',
+    'How do I build an investment portfolio?',
+    'Show me investment options'
   ]);
   const messagesEndRef = useRef(null);
 
@@ -20,9 +20,9 @@ const ChatInterface = () => {
       text: "Hello! I'm StakeMate, your AI investment assistant for infrastructure projects. How can I help you today?",
       timestamp: new Date().toISOString(),
       actions: [
-        { type: 'SUGGEST_TOPIC', payload: 'Learn about investing' },
-        { type: 'SUGGEST_TOPIC', payload: 'Explore projects' },
-        { type: 'SUGGEST_TOPIC', payload: 'Get recommendations' }
+        { type: 'SUGGEST_TOPIC', payload: 'What is a green bond?' },
+        { type: 'SUGGEST_TOPIC', payload: 'Analyze projects' },
+        { type: 'SUGGEST_TOPIC', payload: 'Build a portfolio' }
       ]
     };
     setMessages([initialMessage]);
@@ -115,7 +115,43 @@ const ChatInterface = () => {
     let response = "";
     let actions = [];
     
-    if (input.toLowerCase().includes('risk')) {
+    // Check for green bond question
+    if (input.toLowerCase().includes('green bond') || input.toLowerCase().includes('what is a green')) {
+      response = "A green bond is a fixed-income financial instrument designed specifically to fund projects with positive environmental benefits. Let me explain with a real-world example:\n\nThe Nairobi Securities Exchange (NSE) Wind Farm project in Kenya issued green bonds to finance their 310 MW wind power facility. This project reduces Kenya's carbon emissions by approximately 380,000 tons annually by generating clean electricity that displaces fossil fuel alternatives.\n\nThe bond offers investors:\n• 8.2% fixed annual return\n• ESG impact certification\n• Tax incentives from the Kenyan government\n• Liquidity through the NSE secondary market\n\nWould you like me to analyze this project's financial metrics or explain more about green bonds?";
+      actions = [
+        { type: 'SUGGEST_TOPIC', payload: 'Show NSE project metrics' },
+        { type: 'SUGGEST_TOPIC', payload: 'Green bond benefits' },
+        { type: 'SUGGEST_TOPIC', payload: 'Compare to other investments' }
+      ];
+    }
+    // Check for project analysis request
+    else if (input.toLowerCase().includes('analyze') || input.toLowerCase().includes('metrics') || input.toLowerCase().includes('compare') || input.toLowerCase().includes('nse project')) {
+      response = "I've analyzed three tokenized infrastructure projects for you. Here's the breakdown:\n\n1. NSE Wind Farm (Kenya)\n   • ESG Score: 92/100 (Excellent)\n   • Expected Annual ROI: 8.2%\n   • Risk Level: Medium (48/100)\n   • Minimum Investment: $500\n\n2. Mombasa Solar Array\n   • ESG Score: 88/100 (Very Good)\n   • Expected Annual ROI: 9.8%\n   • Risk Level: Medium-High (62/100)\n   • Minimum Investment: $1,000\n\n3. Nairobi Water Infrastructure\n   • ESG Score: 81/100 (Good)\n   • Expected Annual ROI: 7.5%\n   • Risk Level: Low (32/100)\n   • Minimum Investment: $250\n\nWould you like me to simulate portfolio allocations or recommend an investment strategy based on these options?";
+      actions = [
+        { type: 'SUGGEST_TOPIC', payload: 'Simulate a portfolio' },
+        { type: 'SUGGEST_TOPIC', payload: 'Compare risk profiles' },
+        { type: 'SUGGEST_TOPIC', payload: 'How to invest' }
+      ];
+    }
+    // Check for portfolio simulation
+    else if (input.toLowerCase().includes('portfolio') || input.toLowerCase().includes('simulate') || input.toLowerCase().includes('build')) {
+      response = "I've simulated a $10,000 portfolio allocation across the three infrastructure projects based on your risk profile:\n\n• NSE Wind Farm: $4,000 (40%)\n• Mombasa Solar Array: $3,000 (30%)\n• Nairobi Water: $3,000 (30%)\n\nProjected Annual Return: 8.5%\nBlended Risk Score: Medium (47/100)\nESG Impact Rating: Very High (88/100)\n\nAI Recommendation: Consider reallocating $1,000 from the Solar Array to the Water Infrastructure project to reduce overall portfolio risk while maintaining strong returns and ESG impact.\n\nWould you like to adjust this allocation or proceed with an investment?";
+      actions = [
+        { type: 'SUGGEST_TOPIC', payload: 'Accept recommendation' },
+        { type: 'SUGGEST_TOPIC', payload: 'Adjust allocation' },
+        { type: 'SUGGEST_TOPIC', payload: 'Invest now' }
+      ];
+    } 
+    // Check for investment
+    else if (input.toLowerCase().includes('invest') || input.toLowerCase().includes('buy') || input.toLowerCase().includes('purchase') || input.toLowerCase().includes('accept')) {
+      response = "I've processed your $5,000 investment in the NSE Wind Farm project through the Hedera Token Service (HTS). Here's the transaction summary:\n\n• Token ID: 0.0.28551945\n• Quantity: 50 tokens @ $100/token\n• Transaction ID: 0.0.23546821\n• HashScan Link: https://hashscan.io/testnet/transaction/0.0.23546821\n• Status: Confirmed\n\nYour investment is now live on the Hedera network. The smart contract will automatically distribute quarterly returns to your connected wallet. Your first distribution is expected on August 30, 2023.\n\nWould you like to view your complete portfolio or explore additional investment opportunities?";
+      actions = [
+        { type: 'SUGGEST_TOPIC', payload: 'View my portfolio' },
+        { type: 'SUGGEST_TOPIC', payload: 'Explore more projects' },
+        { type: 'SUGGEST_TOPIC', payload: 'Set up alerts' }
+      ];
+    }
+    else if (input.toLowerCase().includes('risk')) {
       response = "Understanding risk is important for infrastructure investments. Each project has different risk factors including regulatory, construction, operational, and financial risks. Would you like me to explain a specific type of risk or analyze the risk profile of a particular project?";
       actions = [
         { type: 'SHOW_RISK_ASSESSMENT', payload: {} },
@@ -123,31 +159,18 @@ const ChatInterface = () => {
         { type: 'SUGGEST_TOPIC', payload: 'Financial risks' }
       ];
     } 
-    else if (input.toLowerCase().includes('portfolio') || input.toLowerCase().includes('diversif')) {
-      response = "Building a diversified portfolio is a smart approach. For infrastructure investments, you might want to consider a mix of energy, transportation, digital, and social infrastructure projects. Each sector responds differently to economic conditions. Would you like me to suggest a diversification strategy based on your risk profile?";
-      actions = [
-        { type: 'ANALYZE_PORTFOLIO', payload: {} },
-        { type: 'SUGGEST_TOPIC', payload: 'Portfolio allocation' }
-      ];
-    }
     else if (input.toLowerCase().includes('token') || input.toLowerCase().includes('blockchain')) {
       response = "Tokenization uses blockchain technology to represent ownership in infrastructure assets. This makes it possible to invest in smaller portions of large projects, improving accessibility and liquidity. Hedera's secure ledger ensures all transactions and ownership records are transparent and immutable. Would you like to learn more about how this works?";
       actions = [
         { type: 'SHOW_EDUCATIONAL_CONTENT', payload: { topic: 'tokenization' } }
       ];
     }
-    else if (input.toLowerCase().includes('project') || input.toLowerCase().includes('invest')) {
-      response = "I can help you explore various infrastructure projects. Are you interested in a specific sector like energy, transportation, water, or digital infrastructure? Each sector has different risk and return profiles.";
-      actions = [
-        { type: 'LIST_PROJECTS', payload: { limit: 5 } },
-        { type: 'SUGGEST_TOPIC', payload: 'Energy projects' },
-        { type: 'SUGGEST_TOPIC', payload: 'Transportation projects' }
-      ];
-    }
     else {
-      response = "That's an interesting question. Would you like to learn more about infrastructure investing, explore available projects, or get personalized recommendations? I'm here to help with whatever you need.";
+      response = "That's an interesting question. Would you like to learn more about green bonds, explore available infrastructure projects, or get personalized investment recommendations? I'm here to help with whatever you need.";
       actions = [
-        { type: 'SUGGEST_EXPLORATION', payload: {} }
+        { type: 'SUGGEST_TOPIC', payload: 'What is a green bond?' },
+        { type: 'SUGGEST_TOPIC', payload: 'Analyze projects' },
+        { type: 'SUGGEST_TOPIC', payload: 'Build a portfolio' }
       ];
     }
     
@@ -161,30 +184,42 @@ const ChatInterface = () => {
 
   // Generate context-aware suggestions
   const generateSuggestions = (lastResponse) => {
-    if (lastResponse.includes('risk')) {
+    if (lastResponse.includes('green bond')) {
+      return [
+        'Show me green bond projects',
+        'Compare with traditional bonds',
+        'What are the tax benefits?'
+      ];
+    } else if (lastResponse.includes('analyzed three')) {
+      return [
+        'Simulate a portfolio',
+        'Tell me more about the NSE wind farm',
+        'Which has the lowest risk?'
+      ];
+    } else if (lastResponse.includes('portfolio allocation')) {
+      return [
+        'Accept this allocation',
+        'Make it more conservative',
+        'Invest $5000 now'
+      ];
+    } else if (lastResponse.includes('investment in the NSE Wind Farm')) {
+      return [
+        'View my complete portfolio',
+        'Set up automatic investments',
+        'Tell me about Hedera consensus'
+      ];
+    } else if (lastResponse.includes('risk')) {
       return [
         'Tell me about regulatory risks',
         'How do I assess project risk?',
         'Show me low-risk projects'
       ];
-    } else if (lastResponse.includes('portfolio')) {
-      return [
-        'What allocation do you recommend?',
-        'Show my current portfolio',
-        'How can I optimize for returns?'
-      ];
-    } else if (lastResponse.includes('token')) {
-      return [
-        'How secure is tokenization?',
-        'What is the minimum investment?',
-        'Show me tokenized projects'
-      ];
     } else {
       return [
-        'Tell me about ESG investing',
-        'What projects are available?',
-        'How much can I expect to earn?',
-        'What are the investment steps?'
+        'What is a green bond?',
+        'Analyze infrastructure projects',
+        'How do I build a portfolio?',
+        'Show me investment options'
       ];
     }
   };

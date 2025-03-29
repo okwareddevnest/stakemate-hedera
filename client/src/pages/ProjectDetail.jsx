@@ -17,7 +17,9 @@ import {
   FaWater,
   FaNetworkWired,
   FaBuilding,
-  FaUsers
+  FaUsers,
+  FaSpinner,
+  FaExternalLinkAlt
 } from 'react-icons/fa';
 import apiService from '../services/api';
 
@@ -29,6 +31,7 @@ const ProjectDetail = () => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [tokenInfo, setTokenInfo] = useState(null);
+  const [showInvestModal, setShowInvestModal] = useState(false);
 
   // Helper functions
   const getRiskLevelText = (riskScore) => {
@@ -229,6 +232,186 @@ Benefits include reduced travel time for commuters, decreased air pollution, and
     }
   };
 
+  const TokenInvestmentModal = ({ isOpen, onClose, project }) => {
+    const [amount, setAmount] = useState(1000);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [transactionResult, setTransactionResult] = useState(null);
+    
+    if (!isOpen) return null;
+    
+    const handleInvest = () => {
+      setIsProcessing(true);
+      
+      // Simulate API call to Hedera network
+      setTimeout(() => {
+        const success = Math.random() > 0.1; // 90% success rate for demo
+        
+        if (success) {
+          setTransactionResult({
+            success: true,
+            tokenId: '0.0.28551945',
+            transactionId: '0.0.23546821',
+            quantity: Math.floor(amount / 100),
+            pricePerToken: 100,
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          setTransactionResult({
+            success: false,
+            error: 'Transaction failed due to network congestion. Please try again.'
+          });
+        }
+        
+        setIsProcessing(false);
+      }, 3000);
+    };
+    
+    const handleAmountChange = (e) => {
+      const value = parseInt(e.target.value, 10);
+      if (!isNaN(value) && value >= 100) {
+        setAmount(value);
+      }
+    };
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <h2 className="text-2xl font-bold mb-4">{transactionResult ? 'Transaction Result' : 'Invest in Project'}</h2>
+          
+          {!transactionResult && !isProcessing && (
+            <>
+              <p className="mb-4">
+                You are about to invest in <span className="font-semibold">{project.name}</span>
+              </p>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Investment Amount (USD)
+                </label>
+                <input 
+                  type="number" 
+                  min="100"
+                  step="100"
+                  value={amount}
+                  onChange={handleAmountChange}
+                  className="input w-full" 
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Minimum investment: $100
+                </p>
+              </div>
+              
+              <div className="mb-6 bg-gray-50 p-3 rounded-md">
+                <div className="flex justify-between mb-2">
+                  <span>Investment Amount:</span>
+                  <span className="font-medium">${amount.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Token Price:</span>
+                  <span className="font-medium">$100 per token</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span>Tokens to Receive:</span>
+                  <span className="font-medium">{Math.floor(amount / 100)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Transaction Fee:</span>
+                  <span className="font-medium">$0.001</span>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={onClose}
+                  className="btn btn-ghost"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleInvest}
+                  className="btn btn-primary"
+                >
+                  Confirm Investment
+                </button>
+              </div>
+            </>
+          )}
+          
+          {isProcessing && (
+            <div className="text-center py-8">
+              <FaSpinner className="animate-spin h-12 w-12 mx-auto text-blue-500 mb-4" />
+              <p>Processing your investment on the Hedera network...</p>
+              <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
+            </div>
+          )}
+          
+          {transactionResult && !isProcessing && (
+            <div>
+              {transactionResult.success ? (
+                <div>
+                  <div className="mb-6 text-center">
+                    <FaCheckCircle className="h-12 w-12 mx-auto text-green-500 mb-2" />
+                    <p className="font-medium text-green-600">Transaction Successful!</p>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-4 rounded-md mb-6">
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span className="text-gray-600">Token ID:</span>
+                      <span className="font-mono">{transactionResult.tokenId}</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span className="text-gray-600">Transaction ID:</span>
+                      <span className="font-mono">{transactionResult.transactionId}</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span className="text-gray-600">Tokens Purchased:</span>
+                      <span>{transactionResult.quantity}</span>
+                    </div>
+                    <div className="flex justify-between mb-2 text-sm">
+                      <span className="text-gray-600">Amount Invested:</span>
+                      <span>${(transactionResult.quantity * transactionResult.pricePerToken).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Timestamp:</span>
+                      <span>{new Date(transactionResult.timestamp).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  
+                  <a 
+                    href={`https://hashscan.io/testnet/transaction/${transactionResult.transactionId}`}
+                    target="_blank"
+                    rel="noopener noreferrer" 
+                    className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
+                  >
+                    <span>View on HashScan</span>
+                    <FaExternalLinkAlt className="h-3 w-3" />
+                  </a>
+                </div>
+              ) : (
+                <div>
+                  <div className="mb-6 text-center">
+                    <FaExclamationTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-2" />
+                    <p className="font-medium text-yellow-600">Transaction Failed</p>
+                  </div>
+                  <p className="text-center mb-6">{transactionResult.error}</p>
+                </div>
+              )}
+              
+              <div className="flex justify-end">
+                <button
+                  onClick={onClose}
+                  className="btn btn-primary"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -376,7 +559,8 @@ Benefits include reduced travel time for commuters, decreased air pollution, and
               />
               <button
                 type="submit"
-                className="ml-2 btn btn-primary"
+                onClick={() => setShowInvestModal(true)}
+                className="ml-2 btn btn-primary w-full mb-3"
                 disabled={!investmentAmount || Number(investmentAmount) < project.minInvestment}
               >
                 Invest Now
@@ -651,6 +835,14 @@ Benefits include reduced travel time for commuters, decreased air pollution, and
           )}
         </div>
       </div>
+
+      {showInvestModal && (
+        <TokenInvestmentModal 
+          isOpen={showInvestModal} 
+          onClose={() => setShowInvestModal(false)} 
+          project={project} 
+        />
+      )}
     </div>
   );
 };
