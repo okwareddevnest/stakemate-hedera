@@ -428,14 +428,41 @@ const NewLandingPage = () => {
       </section>
 
       {/* Dashboard Preview */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-100">
         <div className="container mx-auto px-4">
-          <div className="bg-white rounded-xl p-4 shadow-2xl">
-            <img 
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80"
-              alt="Analytics Dashboard"
-              className="rounded-lg w-full"
-            />
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-white rounded-3xl p-6 shadow-2xl border border-gray-100 transform hover:scale-[1.02] transition-transform duration-500 animate-float-slow overflow-hidden">
+              <div className="relative rounded-2xl overflow-hidden shadow-inner">
+                <img 
+                  src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+                  alt="Analytics Dashboard"
+                  className="w-full rounded-2xl border border-gray-100"
+                />
+                {/* Overlay gradient for depth */}
+                <div className="absolute inset-0 rounded-2xl shadow-inner pointer-events-none bg-gradient-to-tr from-transparent via-transparent to-white/10"></div>
+              </div>
+              
+              {/* Feature highlight dots */}
+              <div className="absolute top-8 right-8 w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+              <div className="absolute bottom-12 left-12 w-4 h-4 bg-pink-500 rounded-full animate-pulse animation-delay-1000"></div>
+              <div className="absolute top-1/3 left-12 w-4 h-4 bg-green-500 rounded-full animate-pulse animation-delay-2000"></div>
+            </div>
+            
+            {/* Labels */}
+            <div className="flex flex-wrap justify-center mt-8 gap-8">
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Real-time Analytics</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Portfolio Performance</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                <span className="text-sm text-gray-600">Infrastructure Monitoring</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
