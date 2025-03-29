@@ -7,12 +7,13 @@ import {
   FaComments, 
   FaGraduationCap, 
   FaUser,
-  FaInfoCircle
+  FaInfoCircle,
+  FaArrowLeft
 } from 'react-icons/fa';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const navItems = [
-    { path: '/', name: 'Dashboard', icon: <FaHome className="w-5 h-5" /> },
+    { path: '/dashboard', name: 'Dashboard', icon: <FaHome className="w-5 h-5" /> },
     { path: '/projects', name: 'Projects', icon: <FaProjectDiagram className="w-5 h-5" /> },
     { path: '/portfolio', name: 'Portfolio', icon: <FaChartLine className="w-5 h-5" /> },
     { path: '/chat', name: 'AI Assistant', icon: <FaComments className="w-5 h-5" /> },
@@ -49,6 +50,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         </div>
 
         <nav className="mt-5 px-2">
+          {/* Landing page link */}
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `flex items-center px-4 py-3 text-sm rounded-md transition-colors mb-2 text-gray-300 hover:bg-gray-700 hover:text-white`
+            }
+          >
+            <span className="mr-3"><FaArrowLeft className="w-5 h-5" /></span>
+            Back to Home
+          </NavLink>
+          
+          <div className="border-t border-gray-700 my-2"></div>
+          
           <div className="space-y-1">
             {navItems.map((item) => (
               <NavLink

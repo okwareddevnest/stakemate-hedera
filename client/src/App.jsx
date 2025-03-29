@@ -47,7 +47,7 @@ function AppContent() {
     <Router>
       <div className="app-container">
         <Routes>
-          {/* Landing Page - No Sidebar */}
+          {/* Landing Page - No Sidebar, accessible by both logged in and logged out users */}
           <Route path="/" element={<NewLandingPage />} />
           
           {/* App with Sidebar - Protected Routes */}

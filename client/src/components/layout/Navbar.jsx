@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBars, FaBell, FaSearch, FaUser } from 'react-icons/fa';
+import { FaBars, FaBell, FaSearch, FaUser, FaHome } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 
@@ -23,6 +23,10 @@ const Navbar = ({ toggleSidebar }) => {
             >
               <FaBars className="h-6 w-6" />
             </button>
+            <Link to="/" className="flex items-center ml-4 text-blue-600 hover:text-blue-800">
+              <FaHome className="h-5 w-5 mr-1" />
+              <span className="font-medium">Home</span>
+            </Link>
             <div className="hidden md:block ml-4">
               <div className="relative">
                 <input

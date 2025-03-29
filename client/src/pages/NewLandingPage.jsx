@@ -12,13 +12,6 @@ const NewLandingPage = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login');
 
-  // Check if user is already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
   // Show login modal
   const handleShowLogin = () => {
     setAuthMode('login');
@@ -240,12 +233,21 @@ const NewLandingPage = () => {
               Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
             </p>
             <div className="flex gap-4 justify-center">
-              <button 
-                onClick={handleShowRegister}
-                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
-              >
-                Get Started
-              </button>
+              {isAuthenticated ? (
+                <Link
+                  to="/dashboard"
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <button 
+                  onClick={handleShowRegister}
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
+                >
+                  Get Started
+                </button>
+              )}
               <button 
                 onClick={handleShowLogin}
                 className="px-8 py-3 bg-transparent text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
