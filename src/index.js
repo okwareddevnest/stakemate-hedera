@@ -14,6 +14,7 @@ const MilestoneUtils = require('./utils/MilestoneUtils');
 const hederaRoutes = require('./routes/hederaRoutes');
 const directHederaRoutes = require('./routes/directHederaRoutes');
 const tokenRoutes = require('./routes/tokenRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // Initialize services
 const stakemateAgent = new StakemateAgent();
@@ -34,6 +35,7 @@ const PORT = process.env.PORT || 3000;
 app.use('/api/hedera', hederaRoutes);
 app.use('/api/direct-hedera', directHederaRoutes);
 app.use('/api/tokens', tokenRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

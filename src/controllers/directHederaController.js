@@ -24,6 +24,13 @@ class DirectHederaController {
       
       const balance = await HederaClient.getAccountBalance(accountId);
       
+      if (!balance.success) {
+        return res.status(400).json({
+          success: false,
+          error: balance.error || 'Error fetching account balance'
+        });
+      }
+      
       return res.status(200).json({
         success: true,
         data: balance
@@ -56,6 +63,13 @@ class DirectHederaController {
       
       const accountInfo = await HederaClient.getAccountInfo(accountId);
       
+      if (!accountInfo.success) {
+        return res.status(400).json({
+          success: false,
+          error: accountInfo.error || 'Error fetching account info'
+        });
+      }
+      
       return res.status(200).json({
         success: true,
         data: accountInfo
@@ -87,6 +101,13 @@ class DirectHederaController {
       }
       
       const tokenInfo = await HederaClient.getTokenInfo(tokenId);
+      
+      if (!tokenInfo.success) {
+        return res.status(400).json({
+          success: false,
+          error: tokenInfo.error || 'Error fetching token info'
+        });
+      }
       
       return res.status(200).json({
         success: true,
@@ -126,6 +147,13 @@ class DirectHederaController {
       }
       
       const tokenBalance = await HederaClient.getTokenBalance(accountId, tokenId);
+      
+      if (!tokenBalance.success) {
+        return res.status(400).json({
+          success: false,
+          error: tokenBalance.error || 'Error fetching token balance'
+        });
+      }
       
       return res.status(200).json({
         success: true,
@@ -174,6 +202,13 @@ class DirectHederaController {
       
       const result = await HederaClient.associateToken(accountId, tokenId);
       
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error || 'Error associating token'
+        });
+      }
+      
       return res.status(200).json({
         success: true,
         data: result
@@ -220,6 +255,13 @@ class DirectHederaController {
       }
       
       const result = await HederaClient.transferHbar(recipientId, parseFloat(amount));
+      
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error || 'Error transferring HBAR'
+        });
+      }
       
       return res.status(200).json({
         success: true,
@@ -275,6 +317,13 @@ class DirectHederaController {
       
       const result = await HederaClient.transferTokens(tokenId, recipientId, parseInt(amount));
       
+      if (!result.success) {
+        return res.status(400).json({
+          success: false,
+          error: result.error || 'Error transferring tokens'
+        });
+      }
+      
       return res.status(200).json({
         success: true,
         data: result
@@ -289,30 +338,149 @@ class DirectHederaController {
   }
   
   /**
-   * Check if direct Hedera client is properly configured
+   * Get Hedera client status
    * 
    * @param {object} req - Express request object
    * @param {object} res - Express response object
    */
   getClientStatus(req, res) {
     try {
-      // Get client status
       const status = {
-        isConfigured: HederaClient.isConfigured || false,
+        isConfigured: HederaClient.isConfigured,
         accountId: HederaClient.isConfigured ? HederaClient.accountId : null,
-        network: process.env.HEDERA_NETWORK || 'testnet',
+        network: HederaClient.network || 'testnet',
         timestamp: new Date().toISOString()
       };
       
-      return res.status(200).json({
-        success: true,
-        data: status
-      });
+      return res.status(200).json(status);
     } catch (error) {
-      console.error('Error in getClientStatus:', error);
+      console.error('Error getting client status:', error);
       return res.status(500).json({
         success: false,
-        error: error.message || 'Error checking client status'
+        error: error.message || 'Error checking Hedera status'
+      });
+    }
+  }
+  
+  /**
+   * Create a new token
+   * 
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   */
+  async createToken(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          errors: errors.array() 
+        });
+      }
+      
+      const { 
+        name, 
+        symbol, 
+        decimals, 
+        initialSupply,
+        supplyKey,
+        adminKey,
+        metadataKey,
+        memo,
+        metadata
+      } = req.body;
+      
+      if (!name || !symbol) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Token name and symbol are required' 
+        });
+      }
+      
+      const tokenData = {
+        name,
+        symbol,
+        decimals: decimals || 0,
+        initialSupply: initialSupply || 0,
+        supplyKey: supplyKey === true,
+        adminKey: adminKey === true,
+        metadataKey: metadataKey === true,
+        memo,
+        metadata
+      };
+      
+      const result = await HederaClient.createToken(tokenData);
+      
+      if (!result.success && result.error) {
+        return res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
+      
+      return res.status(201).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in createToken:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Error creating token'
+      });
+    }
+  }
+  
+  /**
+   * Mint additional tokens
+   * 
+   * @param {object} req - Express request object
+   * @param {object} res - Express response object
+   */
+  async mintTokens(req, res) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ 
+          success: false, 
+          errors: errors.array() 
+        });
+      }
+      
+      const { tokenId, amount } = req.body;
+      
+      if (!tokenId || !tokenId.match(/^\d+\.\d+\.\d+$/)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Invalid token ID format. Expected format: 0.0.0' 
+        });
+      }
+      
+      if (isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Amount must be a positive number' 
+        });
+      }
+      
+      const result = await HederaClient.mintTokens(tokenId, parseFloat(amount));
+      
+      if (!result.success && result.error) {
+        return res.status(400).json({
+          success: false,
+          error: result.error
+        });
+      }
+      
+      return res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in mintTokens:', error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || 'Error minting tokens'
       });
     }
   }

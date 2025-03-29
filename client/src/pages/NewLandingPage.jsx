@@ -1,10 +1,41 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check, TrendingUp, Wallet, Building, BarChart3, BrainCircuit, Briefcase } from 'lucide-react';
 import TransparentNavbar from '../components/layout/TransparentNavbar';
 import FooterNew from '../components/layout/FooterNew';
+import AuthController from '../components/auth/AuthController';
+import { useAuth } from '../context/AuthContext';
 
 const NewLandingPage = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Show login modal
+  const handleShowLogin = () => {
+    setAuthMode('login');
+    setShowAuth(true);
+  };
+
+  // Show register modal
+  const handleShowRegister = () => {
+    setAuthMode('register');
+    setShowAuth(true);
+  };
+
+  // Close auth modal
+  const handleCloseAuth = () => {
+    setShowAuth(false);
+  };
+
   // Navigation items with icons
   const navItems = [
     { name: 'Dashboard', icon: Home, path: '/dashboard' },
@@ -128,7 +159,18 @@ const NewLandingPage = () => {
   return (
     <div className="min-h-screen font-roboto">
       {/* Navigation */}
-      <TransparentNavbar navItems={navItems} />
+      <TransparentNavbar 
+        navItems={navItems} 
+        onLogin={handleShowLogin}
+        onRegister={handleShowRegister}
+      />
+
+      {/* Auth Modals */}
+      <AuthController 
+        isOpen={showAuth}
+        onClose={handleCloseAuth}
+        initialMode={authMode}
+      />
 
       {/* Hero Section */}
       <section className="pt-32 pb-16 relative bg-gray-50 overflow-hidden">
@@ -198,11 +240,17 @@ const NewLandingPage = () => {
               Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
             </p>
             <div className="flex gap-4 justify-center">
-              <Link to="/dashboard" className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full font-medium font-ubuntu flex items-center shadow-md transition-colors">
-                Get Started <span className="ml-2">→</span>
-              </Link>
-              <button className="border-2 border-pink-500 text-pink-500 hover:bg-pink-50 px-8 py-3 rounded-full font-medium font-ubuntu transition-colors">
-                Learn More
+              <button 
+                onClick={handleShowRegister}
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
+              >
+                Get Started
+              </button>
+              <button 
+                onClick={handleShowLogin}
+                className="px-8 py-3 bg-transparent text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+              >
+                Sign In
               </button>
             </div>
           </div>

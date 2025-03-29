@@ -1,20 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaBars, FaBell, FaSearch, FaUser } from 'react-icons/fa';
+import { useAuth } from '../../context/AuthContext';
+import ProfileDropdown from './ProfileDropdown';
 
 const Navbar = ({ toggleSidebar }) => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showUserMenu, setShowUserMenu] = useState(false);
-
+  
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
-    setShowUserMenu(false);
-  };
-
-  const toggleUserMenu = () => {
-    setShowUserMenu(!showUserMenu);
-    setShowNotifications(false);
   };
 
   return (
@@ -79,38 +74,8 @@ const Navbar = ({ toggleSidebar }) => {
             </div>
 
             {/* Profile dropdown */}
-            <div className="relative ml-4">
-              <button
-                onClick={toggleUserMenu}
-                className="flex items-center focus:outline-none"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white">
-                  <FaUser className="h-4 w-4" />
-                </div>
-              </button>
-
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Your Profile
-                  </Link>
-                  <Link
-                    to="/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Settings
-                  </Link>
-                  <div className="border-t border-gray-100"></div>
-                  <button
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
+            <div className="ml-4">
+              <ProfileDropdown />
             </div>
           </div>
         </div>

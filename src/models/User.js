@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 /**
  * User model for tracking user profiles
- * Includes risk tolerance, history, and learning progress as required
+ * Includes authentication, risk tolerance, history, and learning progress
  */
 const userSchema = new mongoose.Schema({
   // Basic user information
@@ -21,12 +24,31 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6,
+    select: false // Don't return password by default
+  },
   phoneNumber: String,
   country: {
     type: String,
     default: 'Kenya'
   },
   city: String,
+  
+  // Authentication
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   
   // Hedera account information
   hederaAccountId: String,
@@ -207,6 +229,55 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// Password encryption middleware
+userSchema.pre('save', async function(next) {
+  // Only hash the password if it's modified (or new)
+  if (!this.isModified('password')) {
+    return next();
+  }
+  
+  try {
+    // Generate a salt
+    const salt = await bcrypt.genSalt(10);
+    // Hash the password with the salt
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Sign JWT and return
+userSchema.methods.getSignedJwtToken = function() {
+  return jwt.sign(
+    { id: this.id, email: this.email, role: this.role },
+    process.env.JWT_SECRET || 'stakemate-secret-key',
+    { expiresIn: process.env.JWT_EXPIRE || '30d' }
+  );
+};
+
+// Match user entered password to hashed password in database
+userSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Create password reset token
+userSchema.methods.getResetPasswordToken = function() {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set expire
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  return resetToken;
+};
+
 // Instance methods
 
 /**
@@ -257,96 +328,36 @@ userSchema.methods.addInvestment = function(investment) {
       units: investment.units || 0,
       entryPrice: investment.price || 0,
       currentPrice: investment.price || 0,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      type: investment.type || 'simulated'
     });
   }
   
-  // Update portfolio value
-  this.updatePortfolioValue();
+  // Update total portfolio value
+  this.recalculatePortfolioValue();
   
-  return investmentRecord;
+  return this;
 };
 
 /**
- * Record a completed lesson
- * @param {Object} lesson Lesson data
+ * Recalculate total portfolio value based on holdings
  */
-userSchema.methods.completeLesson = function(lesson) {
-  if (!lesson.id || !lesson.topic) {
-    throw new Error('Lesson requires id and topic');
-  }
-  
-  // Check if already completed
-  const alreadyCompleted = this.learningProgress.completedLessons.some(
-    l => l.id === lesson.id
-  );
-  
-  if (!alreadyCompleted) {
-    // Create lesson record
-    const lessonRecord = {
-      id: lesson.id,
-      name: lesson.name,
-      topic: lesson.topic,
-      completedDate: new Date(),
-      score: lesson.score || 100
-    };
-    
-    // Add to completed lessons
-    this.learningProgress.completedLessons.push(lessonRecord);
-    
-    // Update knowledge score for the relevant topic
-    if (this.learningProgress.knowledgeScore[lesson.topic] !== undefined) {
-      // Increment the score for this topic (max 100)
-      this.learningProgress.knowledgeScore[lesson.topic] = Math.min(
-        100,
-        this.learningProgress.knowledgeScore[lesson.topic] + (lesson.scoreIncrement || 10)
-      );
-    }
-    
-    // Update last lesson date
-    this.learningProgress.lastLessonDate = new Date();
-  }
-  
-  return this.learningProgress;
-};
-
-/**
- * Update the user's risk tolerance profile
- * @param {Object} riskData Risk profile data
- */
-userSchema.methods.updateRiskProfile = function(riskData) {
-  this.riskProfile.tolerance = riskData.tolerance || this.riskProfile.tolerance;
-  this.riskProfile.toleranceScore = riskData.toleranceScore || this.riskProfile.toleranceScore;
-  
-  if (riskData.investmentGoals) {
-    this.riskProfile.investmentGoals = riskData.investmentGoals;
-  }
-  
-  this.riskProfile.timeHorizon = riskData.timeHorizon || this.riskProfile.timeHorizon;
-  this.riskProfile.incomeLevel = riskData.incomeLevel || this.riskProfile.incomeLevel;
-  this.riskProfile.lastAssessmentDate = new Date();
-  
-  return this.riskProfile;
-};
-
-/**
- * Update total portfolio value based on holdings
- */
-userSchema.methods.updatePortfolioValue = function() {
+userSchema.methods.recalculatePortfolioValue = function() {
   let totalValue = 0;
   let simulatedValue = 0;
   
-  // Calculate values based on holdings
-  for (const holding of this.portfolio.holdings) {
-    const holdingValue = holding.units * holding.currentPrice;
-    totalValue += holdingValue;
+  // Sum up values from all holdings
+  this.portfolio.holdings.forEach(holding => {
+    const holdingValue = holding.units * (holding.currentPrice || holding.entryPrice);
     
     if (holding.type === 'simulated') {
       simulatedValue += holdingValue;
+    } else {
+      totalValue += holdingValue;
     }
-  }
+  });
   
-  // Update portfolio data
+  // Update portfolio values
   this.portfolio.totalValue = totalValue;
   this.portfolio.simulatedValue = simulatedValue;
   this.portfolio.lastUpdated = new Date();
@@ -358,16 +369,84 @@ userSchema.methods.updatePortfolioValue = function() {
     simulatedValue
   });
   
-  return this.portfolio;
+  return this;
 };
 
 /**
- * Record user login
+ * Update user's risk profile based on assessment data
+ * @param {Object} assessmentData Risk assessment data
+ */
+userSchema.methods.updateRiskProfile = function(assessmentData) {
+  if (!assessmentData || !assessmentData.tolerance) {
+    throw new Error('Risk profile update requires tolerance level');
+  }
+  
+  // Map tolerance string to numerical score if not provided
+  if (!assessmentData.toleranceScore) {
+    const toleranceScores = {
+      conservative: 25,
+      moderate: 50,
+      aggressive: 75
+    };
+    
+    assessmentData.toleranceScore = toleranceScores[assessmentData.tolerance] || 50;
+  }
+  
+  // Update risk profile fields
+  this.riskProfile = {
+    ...this.riskProfile,
+    ...assessmentData,
+    lastAssessmentDate: new Date()
+  };
+  
+  return this;
+};
+
+/**
+ * Record a completed learning lesson
+ * @param {Object} lesson Lesson data
+ */
+userSchema.methods.completeLesson = function(lesson) {
+  if (!lesson.id || !lesson.name) {
+    throw new Error('Lesson completion requires id and name');
+  }
+  
+  // Create lesson record
+  const lessonRecord = {
+    id: lesson.id,
+    name: lesson.name,
+    topic: lesson.topic || 'general',
+    completedDate: new Date(),
+    score: lesson.score || 100
+  };
+  
+  // Add to completed lessons
+  this.learningProgress.completedLessons.push(lessonRecord);
+  
+  // Update knowledge score
+  if (lesson.topic && this.learningProgress.knowledgeScore[lesson.topic] !== undefined) {
+    // Calculate new score (weighted average)
+    const currentScore = this.learningProgress.knowledgeScore[lesson.topic];
+    const lessonWeight = 0.3; // New lesson is 30% of total score
+    
+    this.learningProgress.knowledgeScore[lesson.topic] = 
+      currentScore * (1 - lessonWeight) + (lesson.score || 100) * lessonWeight;
+  }
+  
+  // Update last lesson date
+  this.learningProgress.lastLessonDate = new Date();
+  
+  return this;
+};
+
+/**
+ * Record user login activity
  */
 userSchema.methods.recordLogin = function() {
   this.activity.lastLogin = new Date();
   this.activity.loginCount += 1;
-  return this.activity;
+  
+  return this;
 };
 
 /**

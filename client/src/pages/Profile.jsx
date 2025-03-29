@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser, FaChartLine, FaShieldAlt, FaGraduationCap, FaCog, FaBell } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import authService from '../services/authService';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Get authenticated user from context
+  const { user: authUser, updateProfile } = useAuth();
+  
+  // Local state for user data (initialized with context data but will be updated from API)
   const [user, setUser] = useState({
-    name: 'John Doe',
-    email: 'john@example.com',
-    hederaAccountId: '0.0.5760067',
-    country: 'Kenya',
-    city: 'Nairobi',
-    joinedDate: 'March 2024',
+    name: '',
+    email: '',
+    hederaAccountId: '',
+    country: '',
+    city: '',
+    joinedDate: '',
     riskProfile: {
       tolerance: 'moderate',
-      toleranceScore: 65,
-      investmentGoals: ['Long-term Growth', 'Infrastructure Development'],
+      toleranceScore: 50,
+      investmentGoals: [],
       timeHorizon: 'medium'
     },
     learningProgress: {
-      completedLessons: 12,
-      totalLessons: 30,
+      completedLessons: 0,
+      totalLessons: 0,
       knowledgeScore: {
-        basics: 80,
-        tokenization: 70,
-        infrastructure: 75,
-        regulation: 60,
-        esg: 85,
-        riskManagement: 65
+        basics: 0,
+        tokenization: 0,
+        infrastructure: 0,
+        regulation: 0,
+        esg: 0,
+        riskManagement: 0
       }
     }
   });
@@ -47,6 +56,74 @@ const Profile = () => {
     }
   });
 
+  // Fetch user profile data when component mounts
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await authService.getProfile();
+        
+        if (response.success) {
+          // Format the joined date
+          const joinedDate = new Date(response.data.createdAt).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          });
+          
+          // Format completed lessons count
+          const completedLessonsCount = response.data.learningProgress?.completedLessons?.length || 0;
+          
+          // Update user state with API data
+          setUser({
+            name: response.data.name || '',
+            email: response.data.email || '',
+            hederaAccountId: response.data.hederaAccountId || '',
+            country: response.data.country || '',
+            city: response.data.city || '',
+            joinedDate: joinedDate,
+            riskProfile: response.data.riskProfile || user.riskProfile,
+            learningProgress: {
+              ...user.learningProgress,
+              completedLessons: completedLessonsCount,
+              totalLessons: 30, // This should come from API eventually
+              knowledgeScore: response.data.learningProgress?.knowledgeScore || user.learningProgress.knowledgeScore
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+        setError("Failed to load profile data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (authUser) {
+      fetchUserProfile();
+    }
+  }, [authUser]);
+
+  // Handle saving profile changes
+  const handleSaveChanges = async () => {
+    try {
+      setLoading(true);
+      const profileData = {
+        name: user.name,
+        country: user.country,
+        city: user.city,
+        hederaAccountId: user.hederaAccountId
+      };
+      
+      await updateProfile(profileData);
+      // Show success message or notification here
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      setError("Failed to save profile changes. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getTabClassName = (tabName) => {
     return `px-4 py-2 rounded-lg ${
       activeTab === tabName
@@ -54,6 +131,23 @@ const Profile = () => {
         : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
     }`;
   };
+
+  if (loading && !user.name) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error!</strong>
+        <span className="block sm:inline"> {error}</span>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -121,6 +215,7 @@ const Profile = () => {
                   value={user.email}
                   onChange={(e) => setUser({...user, email: e.target.value})}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  disabled={true} // Email shouldn't be changed here
                 />
               </div>
               <div>
@@ -143,8 +238,12 @@ const Profile = () => {
               </div>
             </div>
             <div className="mt-6">
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                Save Changes
+              <button 
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                onClick={handleSaveChanges}
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
@@ -172,12 +271,16 @@ const Profile = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-2 dark:text-white">Investment Goals</h3>
                 <div className="space-y-2">
-                  {user.riskProfile.investmentGoals.map((goal, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <FaChartLine className="text-blue-500" />
-                      <span className="text-gray-700 dark:text-gray-300">{goal}</span>
-                    </div>
-                  ))}
+                  {user.riskProfile.investmentGoals && user.riskProfile.investmentGoals.length > 0 ? (
+                    user.riskProfile.investmentGoals.map((goal, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <FaChartLine className="text-blue-500" />
+                        <span className="text-gray-700 dark:text-gray-300">{goal}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-500">No investment goals set yet</p>
+                  )}
                 </div>
               </div>
             </div>
