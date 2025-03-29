@@ -241,19 +241,21 @@ const NewLandingPage = () => {
                   Go to Dashboard
                 </Link>
               ) : (
-                <button 
-                  onClick={handleShowRegister}
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
-                >
-                  Get Started
-                </button>
+                <>
+                  <button 
+                    onClick={handleShowRegister}
+                    className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md"
+                  >
+                    Get Started
+                  </button>
+                  <button 
+                    onClick={handleShowLogin}
+                    className="px-8 py-3 bg-transparent text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+                  >
+                    Sign In
+                  </button>
+                </>
               )}
-              <button 
-                onClick={handleShowLogin}
-                className="px-8 py-3 bg-transparent text-blue-600 border border-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-              >
-                Sign In
-              </button>
             </div>
           </div>
 
