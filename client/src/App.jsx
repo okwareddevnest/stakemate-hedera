@@ -53,32 +53,29 @@ function AppContent() {
           {/* App with Sidebar - Protected Routes */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="flex flex-col min-h-screen bg-gray-50">
-                <div className="flex flex-1 overflow-hidden">
-                  {/* Sidebar */}
-                  <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-                  
-                  {/* Main content */}
-                  <div className="flex flex-col flex-1 w-0 overflow-hidden">
-                    <Navbar toggleSidebar={toggleSidebar} />
-                    
-                    <main className="relative flex-1 overflow-y-auto focus:outline-none p-4 md:p-6">
-                      <div className="max-w-7xl mx-auto pb-40">
-                        <Routes>
-                          <Route path="/dashboard" element={<Dashboard />} />
-                          <Route path="/projects" element={<Projects />} />
-                          <Route path="/projects/:id" element={<ProjectDetail />} />
-                          <Route path="/portfolio" element={<Portfolio />} />
-                          <Route path="/chat" element={<ChatInterface />} />
-                          <Route path="/profile" element={<Profile />} />
-                          <Route path="/learn" element={<Learn />} />
-                          <Route path="/course/:id" element={<CourseDetail />} />
-                          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Routes>
-                      </div>
-                    </main>
+              <div className="min-h-screen bg-[#F1F3F8]">
+                {/* Sidebar */}
+                <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+                
+                {/* Navbar */}
+                <Navbar toggleSidebar={toggleSidebar} />
+                
+                {/* Main content */}
+                <main className={`pt-16 ${sidebarOpen ? 'lg:ml-64' : ''} transition-all duration-300`}>
+                  <div className="max-w-7xl mx-auto p-4 md:p-6">
+                    <Routes>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/projects" element={<Projects />} />
+                      <Route path="/projects/:id" element={<ProjectDetail />} />
+                      <Route path="/portfolio" element={<Portfolio />} />
+                      <Route path="/chat" element={<ChatInterface />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/learn" element={<Learn />} />
+                      <Route path="/course/:id" element={<CourseDetail />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
                   </div>
-                </div>
+                </main>
               </div>
             </ProtectedRoute>
           } />

@@ -13,7 +13,7 @@ const Navbar = ({ toggleSidebar }) => {
   };
 
   return (
-    <nav className="bg-white shadow-sm z-10">
+    <nav className="fixed top-0 left-0 right-0 ml-0 lg:ml-64 bg-white shadow-sm z-10 border-b border-gray-200">
       <div className="px-4 md:px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -30,7 +30,7 @@ const Navbar = ({ toggleSidebar }) => {
             <div className="hidden md:block ml-4">
               <div className="relative">
                 <input
-                  className="input w-72 pl-10"
+                  className="bg-gray-50 border border-gray-200 rounded-lg w-72 pl-10 pr-4 py-2 focus:outline-none focus:border-blue-500"
                   type="text"
                   placeholder="Search projects, portfolios..."
                 />
@@ -57,13 +57,13 @@ const Navbar = ({ toggleSidebar }) => {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20">
-                  <div className="px-4 py-2 border-b">
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-20 border border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-100">
                     <h3 className="text-sm font-semibold">Notifications</h3>
                   </div>
                   {notifications.length > 0 ? (
                     notifications.map((notification, index) => (
-                      <div key={index} className="px-4 py-2 border-b hover:bg-gray-50">
+                      <div key={index} className="px-4 py-2 border-b border-gray-100 hover:bg-gray-50">
                         <p className="text-sm">{notification.message}</p>
                         <p className="text-xs text-gray-500">{notification.time}</p>
                       </div>
