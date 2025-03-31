@@ -13,7 +13,6 @@ import Learn from './pages/Learn'
 import CourseDetail from './pages/CourseDetail'
 import NewLandingPage from './pages/NewLandingPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { useState } from 'react'
 
 // Protected route wrapper component
 const ProtectedRoute = ({ children }) => {
