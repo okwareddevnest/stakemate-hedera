@@ -219,10 +219,10 @@ const Dashboard = () => {
       </div>
 
       {/* Network status alert */}
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6">
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6 hover:shadow-md transition-shadow duration-300">
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5 text-yellow-400 transition-transform duration-300 hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
           </div>
@@ -238,7 +238,7 @@ const Dashboard = () => {
       {/* Key metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Portfolio Value */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-blue-200">
           <div className="flex flex-col">
             <p className="text-sm font-medium text-gray-500 mb-1">Portfolio Value</p>
             <div className="flex items-baseline">
@@ -252,7 +252,7 @@ const Dashboard = () => {
         </div>
 
         {/* Projects */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-blue-200">
           <div className="flex flex-col">
             <p className="text-sm font-medium text-gray-500 mb-1">Projects</p>
             <div className="flex items-baseline">
@@ -263,7 +263,7 @@ const Dashboard = () => {
         </div>
 
         {/* Avg. Returns */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-blue-200">
           <div className="flex flex-col">
             <p className="text-sm font-medium text-gray-500 mb-1">Avg. Returns</p>
             <div className="flex items-baseline">
@@ -274,7 +274,7 @@ const Dashboard = () => {
         </div>
 
         {/* Risk Level */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 transform transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-blue-200">
           <div className="flex flex-col">
             <p className="text-sm font-medium text-gray-500 mb-1">Risk Level</p>
             <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.risk}</h3>
@@ -286,17 +286,22 @@ const Dashboard = () => {
       <div className="space-y-4 mt-8">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800">Featured Projects</h2>
-          <a href="/projects" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          <a href="/projects" className="text-blue-600 hover:text-blue-800 text-sm font-medium group flex items-center">
             View all
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:border-blue-200">
               <div className="p-6">
                 <div className="flex items-center mb-4">
-                  {project.icon}
+                  <div className="transition-transform duration-300 hover:rotate-[15deg] hover:scale-110">
+                    {project.icon}
+                  </div>
                   <h3 className="text-lg font-semibold text-gray-800 ml-2">{project.name}</h3>
                 </div>
                 <div className="space-y-3 text-sm">
@@ -322,7 +327,7 @@ const Dashboard = () => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-primary h-2 rounded-full" 
+                      className="bg-primary h-2 rounded-full transition-all duration-700 ease-in-out" 
                       style={{ width: `${project.progress}%` }}
                     ></div>
                   </div>
@@ -330,7 +335,7 @@ const Dashboard = () => {
                 <div className="mt-4">
                   <Link 
                     to={`/projects/${project.id}`} 
-                    className="block w-full text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded"
+                    className="block w-full text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition-all duration-300 hover:shadow-lg transform hover:translate-y-[-2px]"
                   >
                     View Project
                   </Link>
@@ -343,9 +348,9 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 transition-all duration-300 hover:shadow-md hover:border-blue-200 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Portfolio Allocation</h2>
-          <div className="h-64">
+          <div className="h-64 transition-transform duration-500 hover:scale-105 transform-origin-center">
             <Doughnut 
               data={portfolioAllocationData}
               options={{
@@ -354,15 +359,19 @@ const Dashboard = () => {
                   legend: {
                     position: 'bottom',
                   }
+                },
+                animation: {
+                  animateRotate: true,
+                  animateScale: true
                 }
               }}
             />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-6 transition-all duration-300 hover:shadow-md hover:border-blue-200 border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance</h2>
-          <div className="h-64">
+          <div className="h-64 transition-transform duration-500 hover:scale-105 transform-origin-center">
             <Line 
               data={performanceData}
               options={{
@@ -379,6 +388,10 @@ const Dashboard = () => {
                       callback: (value) => `${value} ℏ`
                     }
                   }
+                },
+                animation: {
+                  duration: 2000,
+                  easing: 'easeInOutQuart'
                 }
               }}
             />
@@ -387,26 +400,26 @@ const Dashboard = () => {
       </div>
 
       {/* AI Insights */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-white rounded-lg shadow p-6 mb-8 transition-all duration-300 hover:shadow-md hover:border-blue-200 border border-gray-200">
         <div className="flex items-center mb-4">
-          <FaRobot className="h-6 w-6 text-primary" />
+          <FaRobot className="h-6 w-6 text-primary transition-transform duration-300 hover:rotate-[360deg]" />
           <h2 className="text-lg font-semibold text-gray-900 ml-2">AI Insights</h2>
         </div>
         <div className="space-y-4">
-          <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="p-4 bg-blue-50 rounded-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
             <p className="text-gray-800">Based on your investment profile, renewable energy projects may provide the best balance of returns and risk for your portfolio.</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
+          <div className="p-4 bg-green-50 rounded-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
             <p className="text-gray-800">ESG-focused projects are showing stronger long-term stability in the current market conditions.</p>
           </div>
-          <div className="p-4 bg-yellow-50 rounded-lg">
+          <div className="p-4 bg-yellow-50 rounded-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-md">
             <p className="text-gray-800">Consider diversifying with 20% allocation to water infrastructure projects to balance your transportation-heavy portfolio.</p>
           </div>
         </div>
         <div className="mt-4">
-          <Link to="/chat" className="text-primary hover:text-primary-dark flex items-center">
+          <Link to="/chat" className="text-primary hover:text-primary-dark flex items-center group">
             <span>Ask StakeMate AI for personalized recommendations</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
           </Link>

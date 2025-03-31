@@ -39,10 +39,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo & Close Button */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">StakeMate</h1>
+          <h1 className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-300">StakeMate</h1>
           <button
             onClick={toggleSidebar}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
+            className="text-gray-500 hover:text-gray-700 hover:rotate-90 transform transition-all duration-300 focus:outline-none lg:hidden"
           >
             <FaTimes className="h-5 w-5" />
           </button>
@@ -54,9 +54,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             {/* Back to Home */}
             <NavLink
               to="/"
-              className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100"
+              className="flex items-center px-6 py-3 text-gray-700 hover:bg-gray-100 hover:pl-8 transition-all duration-300"
             >
-              <FaArrowLeft className="h-5 w-5 mr-3 text-gray-500" />
+              <FaArrowLeft className="h-5 w-5 mr-3 text-gray-500 group-hover:text-blue-500 transition-transform duration-300 hover:-translate-x-1" />
               <span>Back to Home</span>
             </NavLink>
 
@@ -69,15 +69,19 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center px-6 py-3 ${
+                    `group flex items-center px-6 py-3 hover:pl-8 transition-all duration-300 ${
                       isActive
                         ? 'bg-blue-50 text-blue-600 border-r-4 border-blue-600'
                         : 'text-gray-700 hover:bg-gray-100'
                     }`
                   }
                 >
-                  <span className="mr-3 text-gray-500">{item.icon}</span>
-                  <span>{item.name}</span>
+                  <span className="mr-3 text-gray-500 group-hover:text-blue-500 transition-transform duration-300 group-hover:scale-110">
+                    {item.icon}
+                  </span>
+                  <span className="group-hover:font-medium transition-all duration-300">
+                    {item.name}
+                  </span>
                 </NavLink>
               ))}
             </div>
@@ -85,8 +89,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
           {/* Footer Info */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-start p-3 bg-gray-50 rounded-lg">
-              <FaInfoCircle className="h-5 w-5 text-blue-500 mt-0.5 mr-3" />
+            <div className="flex items-start p-3 bg-gray-50 rounded-lg transition-all duration-300 hover:bg-blue-50 hover:shadow-md">
+              <FaInfoCircle className="h-5 w-5 text-blue-500 mt-0.5 mr-3 transition-transform duration-300 hover:rotate-[360deg]" />
               <div>
                 <p className="text-xs font-medium text-gray-700 mb-1">Hedera-Powered</p>
                 <p className="text-xs text-gray-500">
