@@ -6,21 +6,31 @@ const User = require('../models/User');
  * Verifies JWT token and attaches user to request object
  */
 module.exports = async function(req, res, next) {
-  // Get token from header
-  const token = req.header('x-auth-token') || 
-                req.header('authorization')?.replace('Bearer ', '');
-
-  // Check if no token
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'No token, authorization denied'
-    });
-  }
-
   try {
+    // Get token from header
+    const token = req.header('x-auth-token') || 
+                  req.header('authorization')?.replace('Bearer ', '');
+
+    // Check if no token
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'No token, authorization denied'
+      });
+    }
+
+    // Get JWT secret from environment
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error('JWT_SECRET environment variable is not set');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'stakemate-secret-key');
+    const decoded = jwt.verify(token, jwtSecret);
     
     // Get user from payload - try both id field and _id field
     let user = null;
@@ -57,15 +67,30 @@ module.exports = async function(req, res, next) {
       id: user.id,
       _id: user._id,
       email: user.email,
-      role: user.role
+      role: user.role,
+      hederaAccountId: user.hederaAccountId
     };
     
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
+    
+    // Provide more specific error messages
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    } else if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has expired'
+      });
+    }
+    
     return res.status(401).json({
       success: false,
-      message: 'Token is not valid'
+      message: 'Authentication failed'
     });
   }
 }; 

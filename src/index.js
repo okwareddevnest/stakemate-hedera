@@ -761,24 +761,22 @@ app.use((err, req, res, next) => {
 // Import and connect to MongoDB, then start the server
 const startServer = async () => {
   try {
-    // Connect to MongoDB
+    // Connect to MongoDB first
     await connectDB();
-    
+    console.log('MongoDB Connected:', process.env.DB_URI || 'mongodb://localhost:27017/stakemate');
+
+    // Initialize Hedera client
+    const { hederaClient, initHederaClient } = require('./hedera/HederaClient');
+    await initHederaClient();
+    console.log('HederaClient initialized for', hederaClient.network, 'with account', hederaClient.accountId);
+
+    // Setup agent event listeners
+    console.log('Setting up Stakemate Agent event listeners');
+    stakemateAgent.setupEventListeners();
+
     // Start server
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      
-      // Initialize demo data if in development
-      if (process.env.NODE_ENV === 'development') {
-        setTimeout(async () => {
-          try {
-            await stakemateAgent.createDemoData();
-            console.log('Demo data created successfully');
-          } catch (error) {
-            console.error('Error creating demo data:', error);
-          }
-        }, 2000);
-      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);
@@ -786,6 +784,7 @@ const startServer = async () => {
   }
 };
 
+// Start server
 startServer();
 
 module.exports = app; 

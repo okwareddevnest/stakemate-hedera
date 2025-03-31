@@ -26,9 +26,12 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
     minlength: 6,
-    select: false // Don't return password by default
+    select: false, // Don't return password by default
+    // Password is optional when using Hedera authentication
+    required: function() {
+      return !this.hederaAccountId; // Only required if not using Hedera auth
+    }
   },
   phoneNumber: String,
   country: {

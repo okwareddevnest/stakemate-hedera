@@ -1,6 +1,38 @@
-import apiClient from './apiClient';
+import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+
+// Configure axios defaults
+axios.defaults.baseURL = API_URL;
+
+// Add token to requests if it exists
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle token expiration
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear invalid tokens
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Redirect to landing page on auth error
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Service for handling authentication-related API calls
@@ -13,7 +45,7 @@ const authService = {
    */
   register: async (userData) => {
     try {
-      const response = await apiClient.post('/auth/register', userData);
+      const response = await axios.post('/auth/register', userData);
       if (response.data.success && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -33,7 +65,7 @@ const authService = {
    */
   login: async (email, password) => {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const response = await axios.post('/auth/login', { email, password });
       if (response.data.success && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -53,29 +85,15 @@ const authService = {
    */
   loginWithHedera: async (accountId, signature) => {
     try {
-      const response = await apiClient.post('/auth/login/hedera', { 
-        accountId, 
-        signature 
-      });
+      const response = await axios.post('/auth/hedera', { accountId, signature });
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       return response.data;
     } catch (error) {
-      // Just log the error and return null, don't throw the error
-      // This allows our demo mode to work even if the API endpoint doesn't exist
       console.error('Hedera login error:', error);
-      
-      // Return a simulated response with a properly formatted JWT token for demo mode
-      // Using the same secret key as the server (stakemate-secret-key)
-      // This JWT token was signed with the server's secret key: 'stakemate-secret-key'
-      return {
-        success: true,
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImRlbW8tMTIzNDU2IiwiZW1haWwiOiJkZW1vQGV4YW1wbGUuY29tIiwiaGVkZXJhQWNjb3VudElkIjoiMC4wLjEyMzQ1NiIsImlhdCI6MTYxMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.OQZbHFH3h4G6SgZ_0iK6qVjUdLIaMvhWiNEwMlWEiCI",
-        user: {
-          id: "demo-" + Date.now(),
-          name: "Demo User",
-          email: `${accountId.replace(/\./g, '')}@example.com`,
-          hederaAccountId: accountId
-        }
-      };
+      throw error;
     }
   },
 
@@ -93,11 +111,11 @@ const authService = {
    */
   getProfile: async () => {
     try {
-      const response = await apiClient.get('/auth/profile');
+      const response = await axios.get('/auth/profile');
       return response.data;
     } catch (error) {
       console.error('Get profile error:', error);
-      throw error.response?.data || { message: 'Failed to get profile' };
+      throw error;
     }
   },
 
@@ -108,11 +126,14 @@ const authService = {
    */
   updateProfile: async (profileData) => {
     try {
-      const response = await apiClient.put('/auth/profile', profileData);
+      const response = await axios.put('/auth/profile', profileData);
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
       return response.data;
     } catch (error) {
       console.error('Update profile error:', error);
-      throw error.response?.data || { message: 'Failed to update profile' };
+      throw error;
     }
   },
 
@@ -128,7 +149,7 @@ const authService = {
         throw new Error('Not authenticated');
       }
 
-      const response = await apiClient.put('/auth/risk-profile', riskData, {
+      const response = await axios.put('/auth/risk-profile', riskData, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -147,7 +168,7 @@ const authService = {
    */
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await apiClient.post('/auth/change-password', {
+      const response = await axios.post('/auth/change-password', {
         currentPassword,
         newPassword
       });
@@ -165,7 +186,7 @@ const authService = {
    */
   forgotPassword: async (email) => {
     try {
-      const response = await apiClient.post('/auth/forgot-password', { email });
+      const response = await axios.post('/auth/forgot-password', { email });
       return response.data;
     } catch (error) {
       console.error('Forgot password error:', error);
@@ -181,7 +202,7 @@ const authService = {
    */
   resetPassword: async (token, password) => {
     try {
-      const response = await apiClient.post(`${API_URL}/auth/reset-password/${token}`, { password });
+      const response = await axios.post(`${API_URL}/auth/reset-password/${token}`, { password });
       return response.data;
     } catch (error) {
       throw error.response ? error.response.data : new Error('Failed to reset password');
@@ -221,7 +242,7 @@ const authService = {
    */
   getAuthChallenge: async (accountId) => {
     try {
-      const response = await apiClient.get(`/auth/challenge?accountId=${accountId}`);
+      const response = await axios.get(`/auth/challenge?accountId=${accountId}`);
       return response.data;
     } catch (error) {
       console.error('Get challenge error:', error);
@@ -238,7 +259,7 @@ const authService = {
    */
   linkHederaAccount: async (accountId, publicKey, signature) => {
     try {
-      const response = await apiClient.post('/auth/link-hedera', {
+      const response = await axios.post('/auth/link-hedera', {
         accountId,
         publicKey,
         signature
@@ -256,7 +277,7 @@ const authService = {
    */
   unlinkHederaAccount: async () => {
     try {
-      const response = await apiClient.post('/auth/unlink-hedera');
+      const response = await axios.post('/auth/unlink-hedera');
       return response.data;
     } catch (error) {
       console.error('Unlink Hedera account error:', error);
@@ -270,7 +291,7 @@ const authService = {
    */
   validateToken: async () => {
     try {
-      const response = await apiClient.get('/auth/validate');
+      const response = await axios.get('/auth/validate');
       return response.data.isValid;
     } catch (error) {
       console.error('Validate token error:', error);

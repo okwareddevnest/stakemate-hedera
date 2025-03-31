@@ -83,10 +83,15 @@ const HederaAuth = ({ onSuccess, onError, setLoading: setParentLoading }) => {
         setStatus("Authentication successful!");
         setStep(5); // Success step
         
-        // Close modal after successful authentication
-        setTimeout(() => {
-          if (onSuccess) onSuccess();
-        }, 1000);
+        // Ensure the auth state is updated before redirecting
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Close modal and redirect
+        if (onSuccess) {
+          onSuccess();
+          // Use window.location for a full page refresh to ensure state is updated
+          window.location.href = '/dashboard';
+        }
       } else {
         setStep(1); // Back to account ID step
         setLocalError(result.error || "Authentication failed");

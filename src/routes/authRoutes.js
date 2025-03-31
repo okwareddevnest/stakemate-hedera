@@ -112,4 +112,18 @@ router.post(
   authController.resetPassword
 );
 
+/**
+ * @route   POST /api/auth/hedera
+ * @desc    Authenticate user with Hedera account
+ * @access  Public
+ */
+router.post(
+  '/hedera',
+  [
+    check('accountId', 'Hedera account ID is required').not().isEmpty(),
+    check('signature', 'Signature is required').not().isEmpty()
+  ],
+  authController.loginWithHedera
+);
+
 module.exports = router; 

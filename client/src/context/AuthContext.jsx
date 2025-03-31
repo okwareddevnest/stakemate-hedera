@@ -16,25 +16,50 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        // Clear any invalid tokens first
         const token = localStorage.getItem('token');
-        
         if (token) {
-          const userData = authService.getCurrentUser();
-          if (userData) {
-            setUser(userData);
-            setIsAuthenticated(true);
+          try {
+            // Verify token with backend
+            const response = await authService.getProfile();
             
-            // Initialize Hedera client if user has Hedera account
-            if (userData.hederaAccountId) {
-              initHederaClient(userData.hederaAccountId);
+            // Check if response has the expected structure
+            if (response && response.success && response.data) {
+              setUser(response.data);
+              setIsAuthenticated(true);
+              
+              // Initialize Hedera client if user has Hedera account
+              if (response.data.hederaAccountId) {
+                initHederaClient(response.data.hederaAccountId);
+              }
+            } else {
+              console.warn('Invalid response structure:', response);
+              // Token is invalid or response is malformed, clear it
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              setUser(null);
+              setIsAuthenticated(false);
             }
+          } catch (error) {
+            console.warn('Could not verify token with backend:', error);
+            // Clear invalid token
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+            setIsAuthenticated(false);
           }
+        } else {
+          // No token found
+          setUser(null);
+          setIsAuthenticated(false);
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
-        // Clear invalid data
+        // Clear any invalid data
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
+        setIsAuthenticated(false);
       } finally {
         setLoading(false);
       }
@@ -130,37 +155,35 @@ export const AuthProvider = ({ children }) => {
    */
   const loginWithHedera = async (accountId, signature) => {
     try {
-      // In a real implementation, this would validate the signature with the Hedera network
-      // For now, we'll simulate a successful authentication
+      setLoading(true);
       
-      // Try to authenticate with the API
-      const apiResponse = await authService.loginWithHedera(accountId, signature);
+      // Call backend to verify Hedera signature and get JWT token
+      const response = await authService.loginWithHedera(accountId, signature);
       
-      // If we got a valid response from the API, use it
-      if (apiResponse && apiResponse.token) {
-        // Set the token in localStorage
-        localStorage.setItem('token', apiResponse.token);
-        localStorage.setItem('user', JSON.stringify(apiResponse.user));
+      if (response.success) {
+        // Store token and user data
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
         
-        // Set user data
-        setUser(apiResponse.user);
+        // Update state
+        setUser(response.user);
         setIsAuthenticated(true);
         
-        // Connect Hedera wallet with the provided account ID
-        await connectHederaWallet(accountId);
+        // Initialize Hedera client
+        initHederaClient(accountId);
         
-        return { success: true, user: apiResponse.user };
+        return { success: true };
+      } else {
+        throw new Error(response.error || 'Authentication failed');
       }
-      
-      // If we're here, something went wrong
-      console.error("Failed to authenticate with Hedera");
-      return { 
-        success: false, 
-        error: "Authentication failed. Please try again." 
-      };
     } catch (error) {
-      console.error("Error during Hedera authentication:", error);
-      return { success: false, error: error.message || "Authentication failed" };
+      console.error('Hedera login error:', error);
+      return {
+        success: false,
+        error: error.message || 'Authentication failed'
+      };
+    } finally {
+      setLoading(false);
     }
   };
 

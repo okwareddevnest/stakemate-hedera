@@ -2,6 +2,24 @@ const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const { Client, AccountId, PrivateKey } = require('@hashgraph/sdk');
+
+/**
+ * Generate JWT token for user
+ */
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user.id || user._id,
+      email: user.email,
+      role: user.role,
+      hederaAccountId: user.hederaAccountId
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRY || '24h' }
+  );
+};
 
 /**
  * Auth Controller for handling user authentication
@@ -490,6 +508,87 @@ class AuthController {
       res.status(500).json({
         success: false,
         message: 'Server error',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Login or register a user with Hedera account
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async loginWithHedera(req, res) {
+    try {
+      const { accountId, signature } = req.body;
+
+      if (!accountId) {
+        return res.status(400).json({
+          success: false,
+          message: 'Hedera account ID is required'
+        });
+      }
+
+      // Find or create user
+      let user = await User.findOne({ hederaAccountId: accountId });
+
+      if (!user) {
+        // Create new user with Hedera account
+        user = await User.create({
+          id: `user-${Date.now()}`,
+          name: `Hedera User ${accountId}`,
+          email: `${accountId.replace(/\./g, '_')}@hedera.example.com`,
+          hederaAccountId: accountId,
+          // Initialize required fields with default values
+          riskProfile: {
+            tolerance: 'moderate',
+            toleranceScore: 50,
+            timeHorizon: 'medium'
+          },
+          portfolio: {
+            totalValue: 0,
+            simulatedValue: 0,
+            holdings: [],
+            performanceHistory: []
+          },
+          learningProgress: {
+            completedLessons: [],
+            knowledgeScore: {
+              basics: 0,
+              tokenization: 0,
+              infrastructure: 0,
+              regulation: 0,
+              esg: 0,
+              riskManagement: 0
+            }
+          }
+        });
+      }
+
+      // Generate JWT token
+      const token = generateToken(user);
+
+      res.status(200).json({
+        success: true,
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          hederaAccountId: user.hederaAccountId,
+          riskProfile: user.riskProfile,
+          portfolio: {
+            totalValue: user.portfolio.totalValue,
+            simulatedValue: user.portfolio.simulatedValue
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Hedera login error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error during Hedera authentication',
         error: error.message
       });
     }

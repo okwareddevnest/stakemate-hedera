@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/layout/Navbar'
@@ -13,6 +12,7 @@ import Learn from './pages/Learn'
 import CourseDetail from './pages/CourseDetail'
 import NewLandingPage from './pages/NewLandingPage'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useState } from 'react'
 
 // Protected route wrapper component
 const ProtectedRoute = ({ children }) => {
@@ -37,10 +37,19 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (

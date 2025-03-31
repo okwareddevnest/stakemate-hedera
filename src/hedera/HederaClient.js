@@ -572,4 +572,19 @@ class HederaClient {
 // Create a singleton instance
 const hederaClient = new HederaClient();
 
-module.exports = hederaClient; 
+// Export the initialization function
+const initHederaClient = async () => {
+  try {
+    hederaClient.initialize();
+    return hederaClient;
+  } catch (error) {
+    console.error('Error initializing Hedera client:', error);
+    throw error;
+  }
+};
+
+module.exports = {
+  hederaClient,
+  initHederaClient,
+  isConfigured: () => hederaClient.isConfigured
+}; 
