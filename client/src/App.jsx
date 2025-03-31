@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/layout/Navbar'
@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
@@ -36,33 +36,33 @@ const ProtectedRoute = ({ children }) => {
 };
 
 function AppContent() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
-  }
+    setSidebarOpen(!sidebarOpen);
+  };
 
   return (
     <Router>
-      <div className="app-container">
-        <Routes>
-          {/* Landing Page - No Sidebar, accessible by both logged in and logged out users */}
-          <Route path="/" element={<NewLandingPage />} />
-          
-          {/* App with Sidebar - Protected Routes */}
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <div className="min-h-screen bg-[#F1F3F8]">
-                {/* Sidebar */}
-                <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-                
-                {/* Navbar */}
+      <Routes>
+        {/* Landing Page - No Sidebar, accessible by both logged in and logged out users */}
+        <Route path="/" element={<NewLandingPage />} />
+        
+        {/* App with Sidebar - Protected Routes */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <div className="flex h-screen bg-[#F1F3F8] overflow-hidden">
+              {/* Sidebar - fixed position */}
+              <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+              
+              {/* Main content area */}
+              <div className={`flex flex-col flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : ''}`}>
+                {/* Navbar - fixed position */}
                 <Navbar toggleSidebar={toggleSidebar} />
                 
-                {/* Main content */}
-                <main className={`pt-16 ${sidebarOpen ? 'lg:ml-64' : ''} transition-all duration-300`}>
-                  <div className="max-w-7xl mx-auto p-4 md:p-6">
+                {/* Main scrollable area */}
+                <main className="flex-1 overflow-y-auto pt-16 px-4 md:px-6 lg:px-8 pb-8">
+                  <div className="max-w-7xl mx-auto w-full">
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/projects" element={<Projects />} />
@@ -77,12 +77,12 @@ function AppContent() {
                   </div>
                 </main>
               </div>
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </div>
+            </div>
+          </ProtectedRoute>
+        } />
+      </Routes>
     </Router>
-  )
+  );
 }
 
 function App() {
@@ -90,7 +90,7 @@ function App() {
     <AuthProvider>
       <AppContent />
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

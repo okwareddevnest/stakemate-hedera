@@ -211,110 +211,120 @@ const Dashboard = () => {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex flex-col space-y-1.5 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
         <p className="text-gray-600">Overview of your infrastructure investment portfolio</p>
       </div>
-      
-      {/* Hedera Network Status */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex items-center">
-          <div className={`h-3 w-3 rounded-full mr-2 ${hederaStatus?.isConfigured ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <h2 className="text-lg font-semibold">Hedera Network Status: {hederaStatus?.isConfigured ? 'Connected' : 'Disconnected'}</h2>
+
+      {/* Network status alert */}
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-yellow-800">Hedera Network Status: Disconnected</h3>
+            <div className="mt-1 text-sm text-yellow-700">
+              <p>Hedera network connection is not properly configured. Please check server configuration.</p>
+            </div>
+          </div>
         </div>
-        {hederaStatus?.isConfigured && (
-          <p className="text-sm text-gray-600 mt-1">
-            Connected to account: {hederaStatus.accountId} • Last updated: {new Date(hederaStatus.timestamp).toLocaleString()}
-          </p>
-        )}
-        {!hederaStatus?.isConfigured && (
-          <p className="text-sm text-gray-600 mt-1">
-            The Hedera network connection is not properly configured. Please check server configuration.
-          </p>
-        )}
       </div>
 
-      {/* Portfolio summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-500 text-sm font-medium mb-1">Portfolio Value</h3>
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold text-gray-900">{portfolioStats.totalValue.toLocaleString()} ℏ</span>
-            <span className={`ml-2 ${portfolioStats.changePercent >= 0 ? 'text-green-500' : 'text-red-500'} flex items-center`}>
-              {portfolioStats.changePercent >= 0 ? <FaArrowUp className="h-3 w-3 mr-1" /> : <FaArrowDown className="h-3 w-3 mr-1" />}
-              {Math.abs(portfolioStats.changePercent).toFixed(1)}%
-            </span>
+      {/* Key metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Portfolio Value */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-gray-500 mb-1">Portfolio Value</p>
+            <div className="flex items-baseline">
+              <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.totalValue.toLocaleString()} ℏ</h3>
+              <span className={`ml-2 text-sm font-medium ${portfolioStats.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {portfolioStats.changePercent >= 0 ? <FaArrowUp className="h-3 w-3 mr-1" /> : <FaArrowDown className="h-3 w-3 mr-1" />}
+                {Math.abs(portfolioStats.changePercent).toFixed(1)}%
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-500 text-sm font-medium mb-1">Projects</h3>
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold text-gray-900">{portfolioStats.projects}</span>
-            <span className="ml-2 text-gray-500 text-sm">active</span>
+        {/* Projects */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-gray-500 mb-1">Projects</p>
+            <div className="flex items-baseline">
+              <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.projects}</h3>
+              <span className="ml-2 text-sm font-medium text-gray-500">active</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-500 text-sm font-medium mb-1">Avg. Returns</h3>
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold text-gray-900">{portfolioStats.returns}%</span>
-            <span className="ml-2 text-gray-500 text-sm">projected</span>
+        {/* Avg. Returns */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-gray-500 mb-1">Avg. Returns</p>
+            <div className="flex items-baseline">
+              <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.returns}%</h3>
+              <span className="ml-2 text-sm font-medium text-gray-500">projected</span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-gray-500 text-sm font-medium mb-1">Risk Level</h3>
-          <div className="flex items-baseline">
-            <span className="text-2xl font-semibold text-gray-900">{portfolioStats.risk}</span>
+        {/* Risk Level */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="flex flex-col">
+            <p className="text-sm font-medium text-gray-500 mb-1">Risk Level</p>
+            <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.risk}</h3>
           </div>
         </div>
       </div>
 
       {/* Featured Projects */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Featured Projects</h2>
-          <Link to="/projects" className="text-primary hover:text-primary-dark">View all</Link>
+      <div className="space-y-4 mt-8">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800">Featured Projects</h2>
+          <a href="/projects" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            View all
+          </a>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg shadow">
+            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <div className="p-6">
                 <div className="flex items-center mb-4">
                   {project.icon}
-                  <h3 className="text-lg font-semibold text-gray-900 ml-2">{project.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 ml-2">{project.name}</h3>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Type:</span>
-                    <span className="font-medium">{project.type}</span>
+                    <span className="font-medium text-gray-700">{project.type}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Expected ROI:</span>
-                    <span className="font-medium">{project.roi}%</span>
+                    <span className="font-medium text-gray-700">{project.roi}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Risk Level:</span>
-                    <span className="font-medium">{project.riskLevel}</span>
+                    <span className="font-medium text-gray-700">{project.riskLevel}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">ESG Score:</span>
-                    <span className="font-medium">{project.esgScore}/100</span>
+                    <span className="font-medium text-gray-700">{project.esgScore}/100</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-gray-500">Progress:</span>
-                      <span className="font-medium">{project.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded h-2">
-                      <div 
-                        className="bg-primary h-2 rounded" 
-                        style={{ width: `${project.progress}%` }}
-                      ></div>
-                    </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Progress:</span>
+                    <span className="font-medium text-gray-700">{project.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-primary h-2 rounded-full" 
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
                   </div>
                 </div>
                 <div className="mt-4">
