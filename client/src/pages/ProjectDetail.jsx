@@ -22,6 +22,7 @@ import {
   FaExternalLinkAlt
 } from 'react-icons/fa';
 import apiService from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -32,6 +33,7 @@ const ProjectDetail = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [tokenInfo, setTokenInfo] = useState(null);
   const [showInvestModal, setShowInvestModal] = useState(false);
+  const { user } = useAuth();
 
   // Helper functions
   const getRiskLevelText = (riskScore) => {
@@ -239,172 +241,153 @@ Benefits include reduced travel time for commuters, decreased air pollution, and
     
     if (!isOpen) return null;
     
-    const handleInvest = () => {
+    const handleInvest = async () => {
       setIsProcessing(true);
       
-      // Simulate API call to Hedera network
-      setTimeout(() => {
-        const success = Math.random() > 0.1; // 90% success rate for demo
+      try {
+        // Call backend to process investment
+        const result = await apiService.processInvestment(
+          user.id,
+          project.id,
+          amount
+        );
         
-        if (success) {
+        if (result.success) {
           setTransactionResult({
             success: true,
-            tokenId: '0.0.28551945',
-            transactionId: '0.0.23546821',
-            quantity: Math.floor(amount / 100),
-            pricePerToken: 100,
-            timestamp: new Date().toISOString()
+            tokenId: result.tokenId,
+            transactionId: result.transactionIds.token,
+            quantity: result.tokenAmount,
+            pricePerToken: amount / result.tokenAmount,
+            timestamp: result.timestamp
           });
         } else {
           setTransactionResult({
             success: false,
-            error: 'Transaction failed due to network congestion. Please try again.'
+            error: result.error || 'Transaction failed. Please try again.'
           });
         }
-        
+      } catch (error) {
+        setTransactionResult({
+          success: false,
+          error: error.message || 'Transaction failed. Please try again.'
+        });
+      } finally {
         setIsProcessing(false);
-      }, 3000);
+      }
     };
     
     const handleAmountChange = (e) => {
       const value = parseInt(e.target.value, 10);
-      if (!isNaN(value) && value >= 100) {
+      if (!isNaN(value) && value >= project.minInvestmentAmount) {
         setAmount(value);
       }
     };
     
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full">
-          <h2 className="text-2xl font-bold mb-4">{transactionResult ? 'Transaction Result' : 'Invest in Project'}</h2>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg p-8 max-w-md w-full">
+          <h2 className="text-2xl font-bold mb-4">Invest in {project.name}</h2>
           
-          {!transactionResult && !isProcessing && (
+          {!transactionResult ? (
             <>
-              <p className="mb-4">
-                You are about to invest in <span className="font-semibold">{project.name}</span>
-              </p>
-              
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Investment Amount (USD)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Investment Amount (HBAR)
                 </label>
-                <input 
-                  type="number" 
-                  min="100"
-                  step="100"
+                <input
+                  type="number"
+                  min={project.minInvestmentAmount}
+                  step={100}
                   value={amount}
                   onChange={handleAmountChange}
-                  className="input w-full" 
+                  className="w-full p-2 border rounded"
+                  disabled={isProcessing}
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Minimum investment: $100
+                  Minimum investment: {project.minInvestmentAmount} HBAR
                 </p>
               </div>
               
-              <div className="mb-6 bg-gray-50 p-3 rounded-md">
-                <div className="flex justify-between mb-2">
-                  <span>Investment Amount:</span>
-                  <span className="font-medium">${amount.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span>Token Price:</span>
-                  <span className="font-medium">$100 per token</span>
-                </div>
-                <div className="flex justify-between mb-2">
-                  <span>Tokens to Receive:</span>
-                  <span className="font-medium">{Math.floor(amount / 100)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Transaction Fee:</span>
-                  <span className="font-medium">$0.001</span>
+              <div className="mb-4">
+                <h3 className="font-medium mb-2">Investment Summary</h3>
+                <div className="bg-gray-50 p-4 rounded">
+                  <p className="flex justify-between mb-2">
+                    <span>HBAR Amount:</span>
+                    <span>{amount}</span>
+                  </p>
+                  <p className="flex justify-between mb-2">
+                    <span>Estimated Tokens:</span>
+                    <span>{Math.floor(amount * 100)}</span>
+                  </p>
+                  <p className="flex justify-between">
+                    <span>Price per Token:</span>
+                    <span>{(amount / (amount * 100)).toFixed(4)} HBAR</span>
+                  </p>
                 </div>
               </div>
               
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-4">
                 <button
                   onClick={onClose}
-                  className="btn btn-ghost"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  disabled={isProcessing}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleInvest}
-                  className="btn btn-primary"
+                  disabled={isProcessing}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
-                  Confirm Investment
+                  {isProcessing ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : (
+                    'Invest Now'
+                  )}
                 </button>
               </div>
             </>
-          )}
-          
-          {isProcessing && (
-            <div className="text-center py-8">
-              <FaSpinner className="animate-spin h-12 w-12 mx-auto text-blue-500 mb-4" />
-              <p>Processing your investment on the Hedera network...</p>
-              <p className="text-sm text-gray-500 mt-2">This may take a few moments</p>
-            </div>
-          )}
-          
-          {transactionResult && !isProcessing && (
-            <div>
+          ) : (
+            <div className="text-center">
               {transactionResult.success ? (
-                <div>
-                  <div className="mb-6 text-center">
-                    <FaCheckCircle className="h-12 w-12 mx-auto text-green-500 mb-2" />
-                    <p className="font-medium text-green-600">Transaction Successful!</p>
+                <>
+                  <div className="mb-4 text-green-600">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                   </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-md mb-6">
-                    <div className="flex justify-between mb-2 text-sm">
-                      <span className="text-gray-600">Token ID:</span>
-                      <span className="font-mono">{transactionResult.tokenId}</span>
-                    </div>
-                    <div className="flex justify-between mb-2 text-sm">
-                      <span className="text-gray-600">Transaction ID:</span>
-                      <span className="font-mono">{transactionResult.transactionId}</span>
-                    </div>
-                    <div className="flex justify-between mb-2 text-sm">
-                      <span className="text-gray-600">Tokens Purchased:</span>
-                      <span>{transactionResult.quantity}</span>
-                    </div>
-                    <div className="flex justify-between mb-2 text-sm">
-                      <span className="text-gray-600">Amount Invested:</span>
-                      <span>${(transactionResult.quantity * transactionResult.pricePerToken).toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Timestamp:</span>
-                      <span>{new Date(transactionResult.timestamp).toLocaleString()}</span>
-                    </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Investment Successful!</h3>
+                  <div className="bg-gray-50 p-4 rounded text-left mb-4">
+                    <p className="mb-2"><span className="font-medium">Token ID:</span> {transactionResult.tokenId}</p>
+                    <p className="mb-2"><span className="font-medium">Transaction ID:</span> {transactionResult.transactionId}</p>
+                    <p className="mb-2"><span className="font-medium">Tokens Received:</span> {transactionResult.quantity}</p>
+                    <p><span className="font-medium">Price per Token:</span> {transactionResult.pricePerToken.toFixed(4)} HBAR</p>
                   </div>
-                  
-                  <a 
-                    href={`https://hashscan.io/testnet/transaction/${transactionResult.transactionId}`}
-                    target="_blank"
-                    rel="noopener noreferrer" 
-                    className="flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 mb-6"
-                  >
-                    <span>View on HashScan</span>
-                    <FaExternalLinkAlt className="h-3 w-3" />
-                  </a>
-                </div>
+                </>
               ) : (
-                <div>
-                  <div className="mb-6 text-center">
-                    <FaExclamationTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-2" />
-                    <p className="font-medium text-yellow-600">Transaction Failed</p>
+                <>
+                  <div className="mb-4 text-red-600">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </div>
-                  <p className="text-center mb-6">{transactionResult.error}</p>
-                </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Transaction Failed</h3>
+                  <p className="text-red-600 mb-4">{transactionResult.error}</p>
+                </>
               )}
-              
-              <div className="flex justify-end">
-                <button
-                  onClick={onClose}
-                  className="btn btn-primary"
-                >
-                  Close
-                </button>
-              </div>
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Close
+              </button>
             </div>
           )}
         </div>

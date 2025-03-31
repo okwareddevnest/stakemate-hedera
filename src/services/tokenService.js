@@ -33,31 +33,39 @@ class TokenService {
       const tokenParams = {
         name: project.name,
         symbol: project.symbol,
-        decimals: 2,
-        initialSupply: Math.floor(project.totalBudget / 10), // Determine initial supply based on budget
+        decimals: project.tokenDecimals || 8,
+        initialSupply: project.initialSupply || Math.floor(project.totalBudget / 10),
         memo: `Infrastructure token for ${project.name} project in ${project.location || 'Kenya'}`
       };
       
-      // Attempt to create using direct client first
       let result;
       if (HederaClient.isConfigured) {
         try {
-          // Direct client implementation would go here
-          // For now, we'll fall back to Eliza service
-          throw new Error('Direct token creation not implemented yet');
+          const client = new HederaClient();
+          result = await client.createToken(tokenParams);
+          
+          if (!result || !result.tokenId) {
+            throw new Error('Token creation failed');
+          }
+          
+          return {
+            tokenId: result.tokenId,
+            symbol: tokenParams.symbol,
+            name: tokenParams.name,
+            initialSupply: tokenParams.initialSupply,
+            decimals: tokenParams.decimals,
+            projectId: project.id,
+            created: new Date().toISOString(),
+            transactionId: result.transactionId,
+            status: result.status
+          };
         } catch (err) {
-          console.log('Falling back to Eliza service for token creation');
+          console.error('Error in direct token creation:', err);
+          throw err;
         }
+      } else {
+        throw new Error('Hedera client not configured');
       }
-      
-      // Fall back to Eliza service
-      result = await elizaService.createToken(tokenParams);
-      
-      return {
-        ...result,
-        projectId: project.id,
-        created: new Date().toISOString()
-      };
     } catch (error) {
       console.error('Error creating project token:', error);
       throw error;
@@ -294,25 +302,66 @@ class TokenService {
    */
   async processInvestment(user, project, amount) {
     try {
+      if (!user || !project || !amount) {
+        throw new Error('Invalid investment parameters');
+      }
+
+      if (!project.tokenId) {
+        throw new Error('Project token not created yet');
+      }
+
       const hbarCost = amount * 0.9; // 90% of investment in HBAR
       const tokenAmount = Math.floor(amount * 100); // Calculate token amount
-      
-      // Simulate token purchase
-      const simulatedPurchase = {
-        userId: user.id,
-        projectId: project.id,
-        tokenSymbol: project.symbol,
-        investmentAmount: amount,
-        hbarCost,
-        tokenAmount,
-        projectedAnnualReturn: project.expectedReturn,
-        maturityPeriod: project.maturityPeriod,
-        projectedTotalReturn: amount * (1 + (project.expectedReturn / 100) * project.maturityPeriod),
-        timestamp: new Date().toISOString(),
-        status: 'simulated'
-      };
-      
-      return simulatedPurchase;
+
+      if (HederaClient.isConfigured) {
+        const client = new HederaClient();
+        
+        // First transfer HBAR from investor to project treasury
+        const hbarTransfer = await client.transferHBAR(
+          user.hederaAccountId,
+          project.treasuryAccountId,
+          hbarCost
+        );
+
+        if (!hbarTransfer.success) {
+          throw new Error('HBAR transfer failed');
+        }
+
+        // Then transfer tokens from treasury to investor
+        const tokenTransfer = await client.transferToken(
+          project.tokenId,
+          project.treasuryAccountId,
+          user.hederaAccountId,
+          tokenAmount
+        );
+
+        if (!tokenTransfer.success) {
+          throw new Error('Token transfer failed');
+        }
+
+        // Record the investment
+        const investment = {
+          userId: user.id,
+          projectId: project.id,
+          tokenSymbol: project.symbol,
+          investmentAmount: amount,
+          hbarCost,
+          tokenAmount,
+          projectedAnnualReturn: project.expectedReturn,
+          maturityPeriod: project.maturityPeriod,
+          projectedTotalReturn: amount * (1 + (project.expectedReturn / 100) * project.maturityPeriod),
+          timestamp: new Date().toISOString(),
+          status: 'completed',
+          transactionIds: {
+            hbar: hbarTransfer.transactionId,
+            token: tokenTransfer.transactionId
+          }
+        };
+
+        return investment;
+      } else {
+        throw new Error('Hedera client not configured');
+      }
     } catch (error) {
       console.error('Error processing investment:', error);
       throw error;

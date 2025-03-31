@@ -213,6 +213,20 @@ const apiService = {
   getAllTokenBalances: (accountId) => apiClient.get(`/hedera/tokens/${accountId || 'me'}`),
   getTokenHolders: (tokenId, threshold = 0) => 
     apiClient.get(`/hedera/tokens/${tokenId}/holders`, { params: { threshold } }),
+
+  // Investment endpoints
+  processInvestment: async (userId, projectId, amount) => {
+    try {
+      const response = await apiClient.post(
+        `/tokens/users/${userId}/projects/${projectId}/invest`,
+        { amount }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error processing investment:', error);
+      throw error;
+    }
+  },
 };
 
 // Project endpoints
