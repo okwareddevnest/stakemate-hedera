@@ -13,29 +13,13 @@ StakeMate is a decentralized platform designed to facilitate micro-investments i
 - **Frontend**: React.js, Tailwind CSS
 - **Backend**: Node.js, Express, MongoDB
 - **Blockchain**: Hedera Hashgraph
+- 
+## Secure Authentication
 
-## Setup Instructions
-1. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-2. **Run Development Server**:
-   ```bash
-   npm run dev
-   ```
-3. **Build for Production**:
-   ```bash
-   npm run build
-   ```
+![WhatsApp Image 2025-04-01 at 23 52 55_0559c2cc](https://github.com/user-attachments/assets/2ee607c6-3478-4b94-a793-a13b73dbd52f)
+## Portfolio Management
+![WhatsApp Image 2025-04-01 at 23 52 00_3ee1ae48](https://github.com/user-attachments/assets/f58de40a-8772-4233-9bb9-0978a38da8d6)
 
-## Project Structure
-```
-stakemate-hedera/
-├── client/
-│   ├── public/
-│   └── src/
-└── server/
-```
 
 ## Conclusion
 StakeMate leverages cutting-edge technology to provide a seamless and secure investment experience, making infrastructure investment accessible to all. 
