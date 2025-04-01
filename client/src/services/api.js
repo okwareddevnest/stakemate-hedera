@@ -52,14 +52,54 @@ const apiService = {
   updateUserProfile: (userId, userData) => apiClient.put(`/users/${userId}`, userData),
   
   // Investments endpoints
-  getUserInvestments: (userId) => apiClient.get(`/users/${userId}/investments`),
+  getUserInvestments: async (userId) => {
+    try {
+      console.log(`Fetching investments for user: ${userId}`);
+      const response = await apiClient.get(`/users/${userId}/investments`);
+      return {
+        success: true,
+        data: response.data
+      };
+    } catch (error) {
+      console.error(`Error fetching investments for user ${userId}:`, error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
   createInvestment: (investmentData) => apiClient.post('/investments', investmentData),
   getInvestmentById: (investmentId) => apiClient.get(`/investments/${investmentId}`),
   
   // AI features
   getRecommendations: (userId) => apiClient.post(`/recommendations/${userId}`),
-  simulateInvestment: (userId, projectId, amount) => 
-    apiClient.post(`/simulation/${userId}/${projectId}`, { amount }),
+  simulateInvestment: async (userId, projectId, amount) => {
+    try {
+      console.log(`Simulating investment for user: ${userId}, project: ${projectId}, amount: ${amount}`);
+      
+      // Make sure projectId is the full ID as expected by the backend
+      // Project IDs should be in the format "project-TIMESTAMP"
+      const projectIdToUse = projectId.startsWith('project-') ? projectId : `project-${projectId}`;
+      
+      console.log(`Using project ID: ${projectIdToUse}`);
+      
+      const response = await apiClient.post(`/simulation/${userId}/${projectIdToUse}`, { 
+        amount,
+        duration: 36 // Default duration in months
+      });
+      
+      return {
+        success: true,
+        ...response.data
+      };
+    } catch (error) {
+      console.error('Error simulating investment:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to simulate investment'
+      };
+    }
+  },
   analyzeSentiment: (data) => apiClient.post('/analysis/sentiment', data),
   
   // Hedera-specific endpoints (via backend that may use Eliza)
@@ -176,16 +216,7 @@ const apiService = {
     }
   },
 
-  // Portfolio endpoints
-  getUserPortfolio: async (userId) => {
-    try {
-      const response = await apiClient.get(`/users/${userId}/portfolio`);
-      return response.data;
-    } catch (error) {
-      console.error('Error getting user portfolio:', error);
-      throw error;
-    }
-  }
+  // Token endpoints should go here if needed
 };
 
 // Project endpoints
@@ -383,31 +414,63 @@ const hederaApiService = {
 const portfolioService = {
   getUserPortfolio: async (userId) => {
     try {
+      console.log(`Fetching portfolio for user: ${userId}`);
       const response = await apiClient.get(`/users/${userId}/portfolio`);
-      return response.data;
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error(`Error fetching portfolio for user ${userId}:`, error);
-      throw error;
+      return {
+        success: false,
+        error: error.message
+      };
     }
   },
   
   getUserInvestments: async (userId) => {
     try {
+      console.log(`Fetching investments for user: ${userId}`);
       const response = await apiClient.get(`/users/${userId}/investments`);
-      return response.data;
+      return {
+        success: true,
+        data: response.data
+      };
     } catch (error) {
       console.error(`Error fetching investments for user ${userId}:`, error);
-      throw error;
+      return {
+        success: false,
+        error: error.message
+      };
     }
   },
-
+  
   simulateInvestment: async (userId, projectId, amount) => {
     try {
-      const response = await apiClient.post(`/simulation/${userId}/${projectId}`, { amount });
-      return response.data;
+      console.log(`Simulating investment for user: ${userId}, project: ${projectId}, amount: ${amount}`);
+      
+      // Make sure projectId is the full ID as expected by the backend
+      // Project IDs should be in the format "project-TIMESTAMP"
+      const projectIdToUse = projectId.startsWith('project-') ? projectId : `project-${projectId}`;
+      
+      console.log(`Using project ID: ${projectIdToUse}`);
+      
+      const response = await apiClient.post(`/simulation/${userId}/${projectIdToUse}`, { 
+        amount,
+        duration: 36 // Default duration in months
+      });
+      
+      return {
+        success: true,
+        ...response.data
+      };
     } catch (error) {
       console.error('Error simulating investment:', error);
-      throw error;
+      return {
+        success: false,
+        error: error.message || 'Failed to simulate investment'
+      };
     }
   }
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import apiService from '../services/api';
+import apiService, { portfolioService } from '../services/api';
 import HederaTopicChat from '../components/HederaTopicChat';
 import {
   Box,
@@ -65,7 +65,8 @@ const ProjectDetail = () => {
     setError(null);
     
     try {
-      const result = await apiService.processInvestment(
+      // Use portfolioService.simulateInvestment to simulate an investment
+      const result = await portfolioService.simulateInvestment(
         user.id,
         project.id,
         parseFloat(investmentAmount)
@@ -75,11 +76,11 @@ const ProjectDetail = () => {
         setInvestmentSuccess({
           amount: result.amount,
           tokenAmount: result.tokenAmount,
-          investorAccountId: result.investorAccountId,
+          investorAccountId: result.investorAccountId || user.hederaAccountId,
           treasuryAccountId: result.treasuryAccountId,
           transactionIds: result.transactionIds,
-          status: result.status,
-          timestamp: result.createdAt
+          status: 'COMPLETED',
+          timestamp: result.startDate
         });
         setShowInvestDialog(false);
         
@@ -88,6 +89,12 @@ const ProjectDetail = () => {
           const tokenData = await apiService.getTokenInfo(project.tokenId);
           setTokenInfo(tokenData);
         }
+        
+        // Show success message
+        setTimeout(() => {
+          // Navigate to portfolio page after 2 seconds so user can see success message
+          navigate('/portfolio');
+        }, 2000);
       } else {
         setError(result.error);
       }

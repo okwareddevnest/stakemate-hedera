@@ -45,72 +45,46 @@ const Portfolio = () => {
   const [hederaAccount, setHederaAccount] = useState(null);
   const { user } = useAuth();
 
-  // Fetch portfolio data
-  useEffect(() => {
-    const fetchPortfolioData = async () => {
-      if (!user?.id) {
-        setError('User not authenticated');
-        setIsLoading(false);
-        return;
-      }
-      
-      setIsLoading(true);
-      try {
-        // Get user's portfolio
-        const portfolioResponse = await portfolioService.getUserPortfolio(user.id);
-        if (portfolioResponse?.success) {
-          const portfolioData = portfolioResponse.data;
-          
-          // Calculate portfolio metrics
-          const totalValue = portfolioData.totalValue || 0;
-          const initialInvestment = portfolioData.holdings.reduce((sum, holding) => sum + holding.amount, 0);
-          const changeAmount = totalValue - initialInvestment;
-          const changePercent = initialInvestment > 0 ? (changeAmount / initialInvestment) * 100 : 0;
-          
-          // Get token balances
-          const tokenBalance = {};
+  // Function to fetch portfolio data
+  const fetchPortfolioData = async () => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      setIsLoading(false);
+      return;
+    }
+    
+    setIsLoading(true);
+    try {
+      // Get user's portfolio
+      const portfolioResponse = await portfolioService.getUserPortfolio(user.id);
+      if (portfolioResponse?.success) {
+        const portfolioData = portfolioResponse.data || {};
+        
+        // Calculate portfolio metrics
+        const totalValue = portfolioData.totalValue || 0;
+        const initialInvestment = portfolioData.holdings?.reduce((sum, holding) => sum + holding.amount, 0) || 0;
+        const changeAmount = totalValue - initialInvestment;
+        const changePercent = initialInvestment > 0 ? (changeAmount / initialInvestment) * 100 : 0;
+        
+        // Get token balances
+        const tokenBalance = {};
+        if (portfolioData.holdings && portfolioData.holdings.length > 0) {
           portfolioData.holdings.forEach(holding => {
-            const symbol = holding.projectType.substring(0, 3).toUpperCase();
-            tokenBalance[symbol] = holding.units;
-          });
-          
-          setPortfolio({
-            totalValue,
-            initialInvestment,
-            changeAmount,
-            changePercent,
-            tokenBalance
+            const symbol = holding.projectType?.substring(0, 3).toUpperCase() || 'UNK';
+            tokenBalance[symbol] = holding.units || 0;
           });
         }
         
-        // Get user's investments
-        const investmentsResponse = await portfolioService.getUserInvestments(user.id);
-        if (investmentsResponse?.success) {
-          const investmentsData = investmentsResponse.data;
-          
-          // Format investments for UI
-          const formattedInvestments = investmentsData.map(inv => ({
-            id: inv.id,
-            project: inv.projectName,
-            symbol: inv.projectType.substring(0, 3).toUpperCase(),
-            tokenId: inv.tokenId,
-            amount: inv.amount,
-            tokenValue: inv.price,
-            date: new Date(inv.timestamp).toISOString().split('T')[0],
-            totalValue: inv.units * inv.price,
-            changePercent: 0 // We don't have historical data yet
-          }));
-          
-          setInvestments(formattedInvestments);
-        }
-        
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Error fetching portfolio data:', err);
-        setError(err.message || 'Failed to load portfolio data');
-        setIsLoading(false);
-        
-        // Empty portfolio data instead of sample data
+        setPortfolio({
+          totalValue,
+          initialInvestment,
+          changeAmount,
+          changePercent,
+          tokenBalance
+        });
+      } else if (portfolioResponse?.error) {
+        console.error('Error from portfolio API:', portfolioResponse.error);
+        // Use empty portfolio data
         setPortfolio({
           totalValue: 0,
           initialInvestment: 0,
@@ -118,12 +92,69 @@ const Portfolio = () => {
           changePercent: 0,
           tokenBalance: {}
         });
+      }
+      
+      // Get user's investments
+      try {
+        const investmentsResponse = await portfolioService.getUserInvestments(user.id);
         
-        // Empty investments array
+        console.log('Investments response:', investmentsResponse);
+        
+        if (investmentsResponse?.success && investmentsResponse?.data) {
+          // Ensure data is an array
+          const investmentsData = Array.isArray(investmentsResponse.data) 
+            ? investmentsResponse.data 
+            : [];
+          
+          console.log('Investments data array:', investmentsData);
+          
+          // Format investments for UI
+          const formattedInvestments = investmentsData.map(inv => ({
+            id: inv.id,
+            projectName: inv.projectName || 'Unknown Project',
+            projectType: inv.projectType || 'Other',
+            symbol: inv.projectType?.substring(0, 3).toUpperCase() || 'UNK',
+            tokenId: inv.tokenId || 'N/A',
+            amount: inv.amount || 0,
+            tokenValue: inv.price || 0,
+            date: inv.timestamp ? new Date(inv.timestamp).toISOString().split('T')[0] : 'N/A',
+            totalValue: (inv.units || 0) * (inv.price || 0),
+            changePercent: 0 // We don't have historical data yet
+          }));
+          
+          setInvestments(formattedInvestments);
+        } else {
+          // Empty investments array
+          console.log('No investments data found or invalid format');
+          setInvestments([]);
+        }
+      } catch (investError) {
+        console.error('Error fetching investments:', investError);
         setInvestments([]);
       }
-    };
-    
+      
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching portfolio data:', err);
+      setError(err.message || 'Failed to load portfolio data');
+      setIsLoading(false);
+      
+      // Empty portfolio data
+      setPortfolio({
+        totalValue: 0,
+        initialInvestment: 0,
+        changeAmount: 0,
+        changePercent: 0,
+        tokenBalance: {}
+      });
+      
+      // Empty investments array
+      setInvestments([]);
+    }
+  };
+
+  // Fetch portfolio data
+  useEffect(() => {
     fetchPortfolioData();
   }, [user]);
 
@@ -150,11 +181,11 @@ const Portfolio = () => {
 
   // Chart data - performance over time
   const performanceData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: ['Current'],
     datasets: [
       {
         label: 'Portfolio Value',
-        data: [40000, 42000, 41500, 43500, 45000, portfolio.totalValue],
+        data: [portfolio.totalValue || 0],
         fill: false,
         borderColor: '#3b82f6',
         tension: 0.1,
@@ -180,10 +211,15 @@ const Portfolio = () => {
     try {
       const response = await portfolioService.simulateInvestment(user.id, projectId, parseFloat(amount));
       
-      alert(`Investment simulation successful! You've invested ${amount} KES. This is a simulation, no actual investment was made.`);
-      
-      // Refresh portfolio data
-      fetchPortfolioData();
+      if (response.success) {
+        alert(`Investment simulation successful! You've invested ${amount} HBAR. This is a simulation, no actual investment was made.`);
+        
+        // Refresh portfolio data
+        fetchPortfolioData();
+      } else {
+        console.error('Investment simulation failed:', response.error);
+        alert(`Investment simulation failed: ${response.error || 'Unknown error'}`);
+      }
     } catch (error) {
       console.error('Investment simulation failed:', error);
       alert(`Investment simulation failed: ${error.message || 'Unknown error'}`);
@@ -309,7 +345,7 @@ const Portfolio = () => {
             <div className="p-6">
               <h2 className="text-lg font-semibold mb-4">Allocation</h2>
               <div className="h-72 flex items-center justify-center">
-                {Object.keys(portfolio.tokenBalance).length > 0 ? (
+                {Object.keys(portfolio.tokenBalance || {}).length > 0 ? (
                   <Doughnut 
                     data={allocationData} 
                     options={{
