@@ -22,7 +22,7 @@ import {
   FaExternalLinkAlt
 } from 'react-icons/fa';
 import apiService from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const ProjectDetail = () => {
   const { id } = useParams();
