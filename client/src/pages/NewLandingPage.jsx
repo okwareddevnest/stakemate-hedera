@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check, TrendingUp, Wallet, Building, BarChart3, BrainCircuit, Briefcase } from 'lucide-react';
+import { Home, Shield, LineChart, MessageSquare, GraduationCap, User, ChevronDown, Leaf, CreditCard, Coins, Check, TrendingUp, Wallet, Building, BarChart3, BrainCircuit, Briefcase, Monitor } from 'lucide-react';
 import TransparentNavbar from '../components/layout/TransparentNavbar';
 import FooterNew from '../components/layout/FooterNew';
 import AuthController from '../components/auth/AuthController';
@@ -34,7 +34,6 @@ const NewLandingPage = () => {
     { name: 'Dashboard', icon: Home, path: '/dashboard' },
     { name: 'Projects', icon: Shield, path: '/projects' },
     { name: 'Portfolio', icon: LineChart, path: '/portfolio' },
-    { name: 'AI Assistant', icon: MessageSquare, path: '/chat' },
     { name: 'Learn', icon: GraduationCap, path: '/learn' },
     { name: 'Profile', icon: User, path: '/profile' }
   ];
@@ -166,177 +165,97 @@ const NewLandingPage = () => {
       />
 
       {/* Hero Section */}
-      <section className="pt-24 pb-16 relative bg-gray-50 overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute top-20 left-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-64 h-64 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-1/2 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-        
-        {/* Graffiti/Bubble text elements */}
-        <div className="absolute top-[15%] left-[5%] text-8xl font-extrabold text-blue-200 opacity-10 rotate-[-15deg] filter blur-sm animate-float">TRADE</div>
-        <div className="absolute top-[40%] right-[8%] text-7xl font-extrabold text-green-200 opacity-10 rotate-[10deg] filter blur-sm animate-float animation-delay-2000">INVEST</div>
-        <div className="absolute bottom-[15%] left-[15%] text-6xl font-extrabold text-blue-200 opacity-10 rotate-[-5deg] filter blur-sm animate-float animation-delay-3000">GROW</div>
-        
-        <div className="absolute inset-0 bg-gradient-conic from-blue-100 via-green-100 to-blue-50 opacity-30"></div>
-        <div className="container mx-auto px-4 relative">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            {/* Left Side - Text Content */}
-            <div className="md:w-5/12 mb-10 md:mb-0 text-left">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 text-gray-900 font-josefin leading-tight">
-                <span className="bg-gradient-to-r from-blue-500 to-green-500 text-transparent bg-clip-text font-light">All-In-One Hub</span>
+      <section className="pt-24 pb-16 relative overflow-hidden min-h-screen">
+        {/* Background Image */}
+        <div className="absolute top-0 left-0 w-full h-full -z-10">
+          <img
+            src="/images/background stakemateaiagent.png"
+            alt="StakeMate Background"
+            className="absolute top-0 left-0 w-full h-full object-cover"
+          />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col items-center justify-center">
+            {/* Centered Title */}
+            <div className="text-center mb-12">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white font-josefin leading-tight mb-4">
+                All-In-One Hub
               </h1>
-              <p className="text-lg text-gray-600 mb-8 font-roboto max-w-lg">
+              <p className="text-lg text-gray-200 font-roboto max-w-2xl mx-auto">
                 Leverage Hedera's IaS for secure, efficient infrastructure investments that empower communities
               </p>
-              
-              {/* Connect Form */}
-              <div className="bg-white p-6 rounded-xl shadow-md">
-                <h3 className="text-xl font-semibold mb-4 font-josefin">Connect your Hedera account</h3>
-                <div className="flex flex-col space-y-4">
-                  <div>
-                    <label htmlFor="accountId" className="block text-sm font-medium text-gray-700 mb-1">Hedera Account ID</label>
-                    <input 
-                      type="text" 
-                      id="accountId" 
-                      placeholder="0.0.12345" 
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Enter your Hedera account ID (e.g., 0.0.12345)</p>
+            </div>
+
+            {/* Centered Feature Cards */}
+            <div className="w-full max-w-4xl">
+              <div className="grid grid-cols-2 gap-6">
+                {/* AI Trading Analysis Card */}
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 transform transition-all duration-500 hover:scale-105 hover:bg-white/20 hover:border-white/30 group">
+                  <div className="text-blue-400 mb-4 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                    <BarChart3 className="w-8 h-8" />
                   </div>
-                  <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full font-medium font-ubuntu flex items-center justify-center shadow-md transition-colors">
-                    Connect <span className="ml-2">→</span>
-                  </button>
+                  <h3 className="text-xl font-bold text-white mb-2 transform transition-all duration-500 group-hover:translate-x-2">AI Trading Analysis</h3>
+                  <p className="text-gray-200 transform transition-all duration-500 group-hover:translate-x-2">Predictive insights for optimal trades</p>
+                </div>
+
+                {/* Hedera Blockchain Card */}
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 transform transition-all duration-500 hover:scale-105 hover:bg-white/20 hover:border-white/30 group">
+                  <div className="text-green-400 mb-4 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                    <Shield className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 transform transition-all duration-500 group-hover:translate-x-2">Hedera Blockchain</h3>
+                  <p className="text-gray-200 transform transition-all duration-500 group-hover:translate-x-2">Secure, efficient IaS technology</p>
+                </div>
+
+                {/* Advanced Analytics Card */}
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 transform transition-all duration-500 hover:scale-105 hover:bg-white/20 hover:border-white/30 group">
+                  <div className="text-purple-400 mb-4 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                    <LineChart className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 transform transition-all duration-500 group-hover:translate-x-2">Advanced Analytics</h3>
+                  <p className="text-gray-200 transform transition-all duration-500 group-hover:translate-x-2">Data-driven investment decisions</p>
+                </div>
+
+                {/* StakeMate Agent Card */}
+                <div className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/20 transform transition-all duration-500 hover:scale-105 hover:bg-white/20 hover:border-white/30 group">
+                  <div className="text-yellow-400 mb-4 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                    <Monitor className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2 transform transition-all duration-500 group-hover:translate-x-2">StakeMate Agent</h3>
+                  <p className="text-gray-200 transform transition-all duration-500 group-hover:translate-x-2">Automation and Tailored investment strategies</p>
                 </div>
               </div>
             </div>
-            
-            {/* Right Side - AI Visualization */}
-            <div className="md:w-7/12 relative h-[450px]">
-              {/* Central AI Avatar */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-                <div className="w-40 h-40 bg-blue-500 rounded-full flex items-center justify-center shadow-lg pulse-animation">
-                  <div className="w-36 h-36 bg-white rounded-full flex items-center justify-center overflow-hidden">
-                    {/* StakeMate AI Agent Logo */}
-                    <div className="w-24 h-24 relative">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="w-full h-full">
-                        <rect x="40" y="40" width="120" height="120" rx="20" fill="#3B82F6" />
-                        <circle cx="70" cy="85" r="10" fill="white" />
-                        <circle cx="130" cy="85" r="10" fill="white" />
-                        <path d="M70 120 Q100 150 130 120" stroke="white" strokeWidth="8" fill="none" strokeLinecap="round" />
-                        <path d="M100 30 L100 10 Q100 0 110 0 L130 0 Q140 0 140 10 L140 20" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
-                        <circle cx="100" cy="10" r="5" fill="#3B82F6" />
-                        <path d="M40 100 L20 100 Q0 100 0 120 L0 140 Q0 160 20 160 L30 160" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
-                        <path d="M160 100 L180 100 Q200 100 200 120 L200 140 Q200 160 180 160 L170 160" stroke="#3B82F6" strokeWidth="12" fill="none" strokeLinecap="round" />
-                      </svg>
+
+            {/* Connect Form - Only show when not authenticated */}
+            {!isAuthenticated && (
+              <div className="mt-12 w-full max-w-md">
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                  <h3 className="text-xl font-semibold text-white mb-4">Connect your Hedera account</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="accountId" className="block text-sm font-medium text-gray-200 mb-1">Hedera Account ID</label>
+                      <input
+                        type="text"
+                        id="accountId"
+                        placeholder="0.0.12345"
+                        className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="mt-1 text-sm text-gray-400">Enter your Hedera account ID (e.g., 0.0.12345)</p>
                     </div>
+                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center group">
+                      <span>Connect</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2 transition-transform duration-300 group-hover:translate-x-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
-              
-              {/* Connecting Lines */}
-              <div className="absolute top-0 left-0 w-full h-full z-10">
-                <svg className="w-full h-full" viewBox="0 0 500 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M250,200 L120,100" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
-                  <path d="M250,200 L400,120" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
-                  <path d="M250,200 L250,350" stroke="url(#blue-gradient)" strokeWidth="2" strokeDasharray="5,5" className="animate-dash"/>
-                  <defs>
-                    <linearGradient id="blue-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#3B82F6" />
-                      <stop offset="100%" stopColor="#10B981" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              
-              {/* Feature 1: AI Trading Analysis */}
-              <div className="absolute top-[50px] left-[70px] animate-float">
-                <div className="bg-white p-4 rounded-xl shadow-lg">
-                  <div className="bg-blue-100 p-3 rounded-full mb-2 inline-block">
-                    <BarChart3 className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <h3 className="text-sm font-bold">AI Trading Analysis</h3>
-                  <p className="text-xs text-gray-500">Predictive insights for optimal trades</p>
-                </div>
-              </div>
-              
-              {/* Feature 2: Hedera Integration */}
-              <div className="absolute top-[100px] right-[70px] animate-float animation-delay-2000">
-                <div className="bg-white p-4 rounded-xl shadow-lg">
-                  <div className="bg-green-100 p-3 rounded-full mb-2 inline-block">
-                    <svg className="w-6 h-6 text-green-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M7 12H17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M12 7V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-bold">Hedera Blockchain</h3>
-                  <p className="text-xs text-gray-500">Secure, efficient IaS technology</p>
-                </div>
-              </div>
-              
-              {/* Feature 3: Analytics */}
-              <div className="absolute bottom-[50px] left-1/2 transform -translate-x-1/2 animate-float animation-delay-3000">
-                <div className="bg-white p-4 rounded-xl shadow-lg">
-                  <div className="bg-blue-100 p-3 rounded-full mb-2 inline-block">
-                    <LineChart className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <h3 className="text-sm font-bold">Advanced Analytics</h3>
-                  <p className="text-xs text-gray-500">Data-driven investment decisions</p>
-                </div>
-              </div>
-              
-              {/* Background Elements */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-48 h-48 border-4 border-blue-200 rounded-full opacity-20 animate-ping-slow"></div>
-                <div className="w-64 h-64 border-4 border-green-200 rounded-full opacity-20 animate-ping-slow animation-delay-1000"></div>
-                <div className="w-80 h-80 border-4 border-blue-200 rounded-full opacity-20 animate-ping-slow animation-delay-2000"></div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Navigation Icons */}
-          <div className="flex justify-center flex-wrap gap-8 mt-20">
-            <Link to="/dashboard" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <Home className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Dashboard</span>
-            </Link>
-            
-            <Link to="/projects" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <Shield className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Projects</span>
-            </Link>
-            
-            <Link to="/portfolio" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <LineChart className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Portfolio</span>
-            </Link>
-            
-            <Link to="/chat" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <MessageSquare className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">AI Assistant</span>
-            </Link>
-            
-            <Link to="/learn" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <GraduationCap className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Learn</span>
-            </Link>
-            
-            <Link to="/profile" className="flex flex-col items-center text-center">
-              <div className="bg-blue-100 p-5 rounded-full mb-3 hover:bg-blue-200 transition-colors">
-                <User className="w-6 h-6 text-blue-600" />
-              </div>
-              <span className="text-sm text-gray-600 hover:text-blue-500 transition-colors font-ubuntu">Profile</span>
-            </Link>
+            )}
           </div>
         </div>
       </section>
@@ -450,7 +369,7 @@ const NewLandingPage = () => {
                     <BrainCircuit className="w-6 h-6 text-purple-500" />
                   </div>
                   <h3 className="text-xl font-bold mb-2 text-gray-900 font-josefin backdrop-blur-sm bg-white/30 p-1 rounded group-hover:bg-transparent">
-                    StakeMate.AI
+                    StakeMate.Agent
                   </h3>
                   <p className="text-gray-600 font-roboto transition-all duration-300 opacity-0 group-hover:opacity-100 mt-auto backdrop-blur-sm bg-white/60 p-2 rounded">
                     AI assistant that automates risk assessment and staking decisions, even tipping you on opportunities.

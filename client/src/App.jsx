@@ -7,7 +7,6 @@ import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import Portfolio from './pages/Portfolio'
-import ChatInterface from './pages/ChatInterface'
 import Profile from './pages/Profile'
 import Learn from './pages/Learn'
 import CourseDetail from './pages/CourseDetail'
@@ -68,7 +67,6 @@ function AppContent() {
                       <Route path="/projects" element={<Projects />} />
                       <Route path="/projects/:id" element={<ProjectDetail />} />
                       <Route path="/portfolio" element={<Portfolio />} />
-                      <Route path="/chat" element={<ChatInterface />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/learn" element={<Learn />} />
                       <Route path="/course/:id" element={<CourseDetail />} />
