@@ -732,17 +732,27 @@ app.get('/api/milestones/:projectId/risk', async (req, res) => {
 });
 
 // Chatbot endpoint for agent conversation
-app.post('/api/chat/:userId', (req, res) => {
+app.post('/api/chat/:userId', async (req, res) => {
   try {
+    const { userId } = req.params;
     const { message } = req.body;
-    // This would integrate with an LLM or the Eliza pattern for agent responses
-    // For now, return a mock response
-    res.json({
-      userId: req.params.userId,
+    
+    // Get user to personalize responses
+    const user = await stakemateAgent.getUser(userId);
+    
+    // Process the message through the agent
+    // Note: In a production app, this would connect to a real LLM or chatbot service
+    const response = {
+      userId,
       message,
-      response: "I'm Stakemate, your AI financial advisor. I'm here to help you with infrastructure micro-investments in Kenya. What would you like to know about today?",
+      response: "I'm Stakemate, your investment assistant. How can I help you with infrastructure investments today?",
       timestamp: new Date().toISOString()
-    });
+    };
+    
+    // Log the interaction for user history
+    console.log(`Chat interaction for user ${userId}: ${message}`);
+    
+    res.json(response);
   } catch (error) {
     console.error('Error processing chat message:', error);
     res.status(500).json({ error: error.message });

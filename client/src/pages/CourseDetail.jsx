@@ -1,121 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaArrowLeft, FaRegClock, FaGraduationCap, FaRegStar, FaCheck, FaLock, FaPlay, FaDownload, FaRegBookmark } from 'react-icons/fa';
+import axios from 'axios';
 
 const CourseDetail = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
   
-  // Mock course data
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   useEffect(() => {
-    // Simulate API call to get course details
     const fetchCourse = async () => {
       setLoading(true);
-      // In a real app, this would be an API call using the id parameter
-      setTimeout(() => {
-        const courseData = {
-          id: parseInt(id),
-          title: 'Infrastructure Investment Basics',
-          description: 'Learn the fundamentals of infrastructure investment in Kenya and how to evaluate potential projects for maximum returns and social impact.',
-          image: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-          level: 'Beginner',
-          duration: '3 hours',
-          modules: 7,
-          category: 'Investment',
-          rating: 4.8,
-          totalStudents: 342,
-          author: 'Dr. Sarah Kamau',
-          authorTitle: 'Investment Specialist',
-          authorImage: 'https://randomuser.me/api/portraits/women/44.jpg',
-          lastUpdated: 'March 2024',
-          objectives: [
-            'Understand the infrastructure investment landscape in Kenya',
-            'Learn to evaluate the potential of infrastructure projects',
-            'Analyze risk factors in infrastructure investments',
-            'Understand how infrastructure tokens work on Hedera',
-            'Build a basic infrastructure investment strategy'
-          ],
-          moduleList: [
-            {
-              id: 1,
-              title: 'Introduction to Infrastructure Investment',
-              duration: '30 min',
-              lessons: 4,
-              completed: true
-            },
-            {
-              id: 2,
-              title: 'Key Infrastructure Sectors in Kenya',
-              duration: '45 min',
-              lessons: 5,
-              completed: true
-            },
-            {
-              id: 3,
-              title: 'Project Evaluation Techniques',
-              duration: '60 min',
-              lessons: 6,
-              completed: false,
-              current: true
-            },
-            {
-              id: 4,
-              title: 'Risk Assessment in Infrastructure',
-              duration: '45 min',
-              lessons: 4,
-              completed: false
-            },
-            {
-              id: 5,
-              title: 'Tokenization Process',
-              duration: '30 min',
-              lessons: 3,
-              completed: false
-            },
-            {
-              id: 6,
-              title: 'Building an Investment Strategy',
-              duration: '40 min',
-              lessons: 4,
-              completed: false
-            },
-            {
-              id: 7,
-              title: 'Case Studies & Success Stories',
-              duration: '50 min',
-              lessons: 5,
-              completed: false
-            }
-          ],
-          requirements: [
-            'Basic understanding of investment concepts',
-            'Interest in infrastructure development',
-            'No prior blockchain experience needed'
-          ],
-          resources: [
-            {
-              name: 'Infrastructure Investment Checklist',
-              type: 'PDF',
-              size: '2.4 MB'
-            },
-            {
-              name: 'Project Evaluation Template',
-              type: 'Excel',
-              size: '1.8 MB'
-            },
-            {
-              name: 'Risk Assessment Matrix',
-              type: 'PDF',
-              size: '1.2 MB'
-            }
-          ]
-        };
-        setCourse(courseData);
+      try {
+        // In a real implementation, this would fetch from an actual API endpoint
+        const response = await axios.get(`/api/courses/${id}`);
+        setCourse(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching course:', err);
+        setError('Failed to load course data');
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
     
     fetchCourse();
@@ -129,10 +38,11 @@ const CourseDetail = () => {
     );
   }
   
-  if (!course) {
+  if (error || !course) {
     return (
       <div className="text-center p-8">
         <h2 className="text-2xl font-bold">Course not found</h2>
+        <p className="text-gray-600 mt-2">{error}</p>
         <Link to="/learn" className="text-blue-500 hover:underline mt-4 inline-block">
           Back to courses
         </Link>

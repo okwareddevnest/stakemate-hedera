@@ -283,17 +283,16 @@ class StakemateAgent {
   }
 
   /**
-   * Get educational content for a user
+   * Get personalized educational content for a user
    * @param {string} userId User ID
-   * @param {string} topic Topic to get content for
+   * @param {string} topic Topic of interest
    * @returns {Object} Educational content
    */
   async getEducationalContent(userId, topic) {
     try {
       const user = await this.getUser(userId);
       
-      // Logic to fetch and personalize educational content would go here
-      // For now, return mock data
+      // In a real implementation, this would fetch personalized content from a learning system
       const topicScores = user.learningProgress.knowledgeScore;
       const topicScore = topicScores[topic] || 0;
       
@@ -304,20 +303,15 @@ class StakemateAgent {
         difficultyLevel = 'intermediate';
       }
       
-      // Mock content based on topic and difficulty
+      // Return basic content structure that would be filled by a real system
       return {
         userId,
         topic,
         difficultyLevel,
-        title: `Understanding ${topic} in Infrastructure Investing`,
-        content: `This is personalized ${difficultyLevel} content about ${topic}.`,
-        resources: [
-          { title: `${topic} Guide`, url: `https://example.com/${topic}-guide` },
-          { title: `${topic} in Practice`, url: `https://example.com/${topic}-practice` }
-        ],
-        quiz: [
-          { question: `Question about ${topic}?`, options: ['Option A', 'Option B', 'Option C', 'Option D'], answer: 0 }
-        ]
+        title: `${topic} in Infrastructure Investing`,
+        content: `Content about ${topic} would be provided by the learning system.`,
+        resources: [],
+        quiz: []
       };
     } catch (error) {
       console.error(`Error getting educational content for user ${userId}:`, error);
@@ -335,18 +329,17 @@ class StakemateAgent {
     try {
       const user = await this.getUser(userId);
       
-      // Logic to fetch the lesson would go here
-      // For now, use a mock lesson
-      const mockLesson = {
+      // In a real implementation, this would fetch the actual lesson details
+      const lesson = {
         id: lessonId,
         name: `Lesson ${lessonId}`,
-        topic: 'infrastructure', // Default topic
-        score: 85,
-        scoreIncrement: 15
+        topic: 'infrastructure',
+        score: 10,
+        scoreIncrement: 10
       };
       
       // Mark lesson as complete
-      const updatedProgress = user.completeLesson(mockLesson);
+      const updatedProgress = user.completeLesson(lesson);
       
       // Save the updated user
       await user.save();
@@ -755,110 +748,6 @@ class StakemateAgent {
     } catch (error) {
       console.error(`Error simulating investment for user ${userId} in project ${projectId}:`, error);
       throw error;
-    }
-  }
-
-  /**
-   * Create demo data for testing
-   */
-  async createDemoData() {
-    try {
-      console.log('Creating demo data...');
-      
-      // Look for existing demo user before creating
-      let demoUser;
-      try {
-        demoUser = await User.findOne({ email: 'john.doe@example.com' });
-        
-        if (!demoUser) {
-          // Create a demo user if not exists
-          demoUser = await this.createUser({
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phoneNumber: '+254712345678',
-            country: 'Kenya',
-            city: 'Nairobi',
-            riskTolerance: 'moderate',
-            riskToleranceScore: 60,
-            investmentGoals: ['growth', 'sustainability', 'infrastructure']
-          });
-        } else {
-          console.log('Demo user already exists, skipping creation');
-        }
-      } catch (error) {
-        console.error('Error with demo user:', error);
-        // Continue even if user creation fails
-      }
-      
-      // Look for existing projects before creating
-      const existingProjects = await InfrastructureProject.find({});
-      let demoProject, demoProject2;
-
-      // Only create projects if none exist
-      if (existingProjects.length === 0) {
-        try {
-          // Create a demo infrastructure project
-          demoProject = await this.createProject({
-            name: 'Nairobi Commuter Rail',
-            symbol: 'NCR',
-            description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-            location: 'Nairobi, Kenya',
-            type: 'Transportation',
-            website: 'https://example.com/nairobi-rail',
-            totalBudget: 45000000,
-            fundingSecured: 28000000,
-            expectedReturn: 8.5,
-            environmentalImpact: 'positive',
-            carbonReduction: 25000,
-            jobsCreated: 1200,
-            minInvestmentAmount: 5000
-          });
-          
-          // Create a second demo project
-          demoProject2 = await this.createProject({
-            name: 'Lake Turkana Wind Power',
-            symbol: 'LTWP',
-            description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
-            location: 'Turkana, Kenya',
-            type: 'Energy',
-            website: 'https://example.com/turkana-wind',
-            totalBudget: 85000000,
-            fundingSecured: 62000000,
-            expectedReturn: 12.8,
-            environmentalImpact: 'very positive',
-            carbonReduction: 75000,
-            jobsCreated: 800,
-            minInvestmentAmount: 10000
-          });
-          
-          // Only simulate investment if both user and project exist
-          if (demoUser && demoProject) {
-            // Simulate an investment
-            await this.simulateInvestment(demoUser.id, demoProject.id, 10000);
-          }
-        } catch (error) {
-          console.error('Error creating demo projects:', error);
-          // Continue execution even if project creation fails
-        }
-      } else {
-        console.log('Projects already exist, skipping creation');
-        demoProject = existingProjects[0];
-        demoProject2 = existingProjects.length > 1 ? existingProjects[1] : null;
-      }
-      
-      console.log('Demo data setup completed');
-      
-      return {
-        user: demoUser,
-        projects: [demoProject, demoProject2].filter(Boolean) // Filter out any null values
-      };
-    } catch (error) {
-      console.error('Error creating demo data:', error);
-      // Instead of throwing, return what we've created so far
-      return {
-        error: error.message,
-        partial: true
-      };
     }
   }
 }

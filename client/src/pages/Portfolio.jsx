@@ -14,9 +14,12 @@ import {
   FaArrowUp, 
   FaArrowDown,
   FaDownload,
-  FaExchangeAlt
+  FaExchangeAlt,
+  FaServer,
+  FaUsers
 } from 'react-icons/fa';
 import apiService, { portfolioService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Import chart components
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
@@ -40,17 +43,21 @@ const Portfolio = () => {
   const [error, setError] = useState(null);
   const [accountData, setAccountData] = useState(null);
   const [hederaAccount, setHederaAccount] = useState(null);
+  const { user } = useAuth();
 
   // Fetch portfolio data
   useEffect(() => {
     const fetchPortfolioData = async () => {
+      if (!user?.id) {
+        setError('User not authenticated');
+        setIsLoading(false);
+        return;
+      }
+      
       setIsLoading(true);
       try {
-        // In a real app, you would use the actual user ID from authentication
-        const userId = 'user-1743081696155'; // Demo user ID
-        
         // Get user's portfolio
-        const portfolioResponse = await portfolioService.getUserPortfolio(userId);
+        const portfolioResponse = await portfolioService.getUserPortfolio(user.id);
         if (portfolioResponse?.success) {
           const portfolioData = portfolioResponse.data;
           
@@ -77,7 +84,7 @@ const Portfolio = () => {
         }
         
         // Get user's investments
-        const investmentsResponse = await portfolioService.getUserInvestments(userId);
+        const investmentsResponse = await portfolioService.getUserInvestments(user.id);
         if (investmentsResponse?.success) {
           const investmentsData = investmentsResponse.data;
           
@@ -103,83 +110,22 @@ const Portfolio = () => {
         setError(err.message || 'Failed to load portfolio data');
         setIsLoading(false);
         
-        // Fallback to sample data
+        // Empty portfolio data instead of sample data
         setPortfolio({
-          totalValue: 46500,
-          initialInvestment: 42000,
-          changeAmount: 4500,
-          changePercent: 10.71,
-          tokenBalance: {
-            NCR: 200,
-            LTW: 300,
-            MWS: 150,
-            NSC: 75,
-            AHK: 110,
-          }
+          totalValue: 0,
+          initialInvestment: 0,
+          changeAmount: 0,
+          changePercent: 0,
+          tokenBalance: {}
         });
         
-        setInvestments([
-          {
-            id: 1,
-            project: 'Nairobi Commuter Rail',
-            symbol: 'NCR',
-            tokenId: '0.0.5783117',
-            amount: 200,
-            tokenValue: 50,
-            date: '2024-01-15',
-            totalValue: 10000,
-            changePercent: 12.5
-          },
-          {
-            id: 2,
-            project: 'Lake Turkana Wind Power',
-            symbol: 'LTW',
-            tokenId: '0.0.5783118',
-            amount: 300,
-            tokenValue: 65,
-            date: '2024-02-10',
-            totalValue: 19500,
-            changePercent: 8.3
-          },
-          {
-            id: 3,
-            project: 'Mombasa Water Supply',
-            symbol: 'MWS',
-            tokenId: '0.0.5783119',
-            amount: 150,
-            tokenValue: 45,
-            date: '2024-03-05',
-            totalValue: 6750,
-            changePercent: -2.1
-          },
-          {
-            id: 4,
-            project: 'Nakuru Smart City',
-            symbol: 'NSC',
-            tokenId: '0.0.5783120',
-            amount: 75,
-            tokenValue: 80,
-            date: '2024-03-20',
-            totalValue: 6000,
-            changePercent: 15.7
-          },
-          {
-            id: 5,
-            project: 'Affordable Housing Kenya',
-            symbol: 'AHK',
-            tokenId: '0.0.5783121',
-            amount: 110,
-            tokenValue: 42,
-            date: '2024-01-25',
-            totalValue: 4620,
-            changePercent: 3.8
-          }
-        ]);
+        // Empty investments array
+        setInvestments([]);
       }
     };
     
     fetchPortfolioData();
-  }, []);
+  }, [user]);
 
   // Chart data - portfolio allocation
   const allocationData = {
@@ -226,18 +172,53 @@ const Portfolio = () => {
   }
 
   const handleSimulateInvestment = async (projectId, amount) => {
+    if (!user?.id) {
+      setError('User not authenticated');
+      return;
+    }
+    
     try {
-      // In a real app, you would use the actual user ID from authentication
-      const userId = 'user-1743081696155'; // Demo user ID
-      const response = await portfolioService.simulateInvestment(userId, projectId, parseFloat(amount));
+      const response = await portfolioService.simulateInvestment(user.id, projectId, parseFloat(amount));
       
-      alert(`Investment simulation successful! You've invested ${amount} KES. This is a demo, no actual investment was made.`);
+      alert(`Investment simulation successful! You've invested ${amount} KES. This is a simulation, no actual investment was made.`);
       
       // Refresh portfolio data
       fetchPortfolioData();
     } catch (error) {
       console.error('Investment simulation failed:', error);
       alert(`Investment simulation failed: ${error.message || 'Unknown error'}`);
+    }
+  };
+
+  // Get project icon based on type
+  const getProjectIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'transportation':
+        return <FaRoad />;
+      case 'energy':
+        return <FaLightbulb />;
+      case 'water':
+        return <FaWater />;
+      case 'digital':
+        return <FaServer />;
+      case 'social':
+        return <FaUsers />;
+      default:
+        return <FaBuilding />;
+    }
+  };
+  
+  // Format date
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return dateString;
     }
   };
 
@@ -352,89 +333,82 @@ const Portfolio = () => {
         </div>
       </div>
 
-      {/* Investments Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Investment Details</h2>
-          
-          {investments.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token Value</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="relative px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {investments.map((investment) => (
-                    <tr key={investment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{investment.project}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{investment.symbol}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{investment.tokenId}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">{investment.amount.toLocaleString()}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">{investment.tokenValue.toLocaleString()} ℏ</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">{investment.totalValue.toLocaleString()} ℏ</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className={`flex items-center ${investment.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {investment.changePercent >= 0 ? (
-                            <FaArrowUp className="mr-1 h-3 w-3" />
-                          ) : (
-                            <FaArrowDown className="mr-1 h-3 w-3" />
-                          )}
-                          {Math.abs(investment.changePercent).toFixed(2)}%
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-500">{investment.date}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link to={`/projects/${investment.id}`} className="text-primary hover:text-primary-dark">
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <FaInfoCircle className="mx-auto h-12 w-12 text-gray-300" />
-              <h3 className="mt-2 text-lg font-medium text-gray-900">No investments found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                You haven't made any investments yet. Start by exploring available projects.
-              </p>
-              <div className="mt-6">
-                <Link
-                  to="/projects"
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-                >
-                  Browse Projects
-                </Link>
-              </div>
-            </div>
-          )}
+      {/* Investment Table */}
+      <div className="bg-white rounded-xl shadow-md overflow-hidden mt-8">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800">Your Investments</h3>
         </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="p-6 text-center">
+            <p className="text-red-500">{error}</p>
+          </div>
+        ) : investments.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token ID</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token Value</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {investments.map((investment, index) => (
+                  <tr key={index} className="hover:bg-gray-50 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-blue-100 text-blue-500">
+                          {getProjectIcon(investment.projectType)}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{investment.projectName}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{investment.symbol}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{investment.tokenId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{investment.amount}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{investment.tokenValue} ℏ</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(investment.date)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{investment.totalValue} ℏ</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${investment.changePercent >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {investment.changePercent >= 0 ? '+' : ''}{investment.changePercent}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-8 text-center">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <FaChartLine className="h-12 w-12 text-gray-400" />
+              <h3 className="text-lg font-medium text-gray-700">No investments yet</h3>
+              <p className="text-gray-500 max-w-md mx-auto">Start investing in infrastructure projects to build your tokenized portfolio and track your returns.</p>
+              <Link 
+                to="/projects" 
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Browse Projects
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

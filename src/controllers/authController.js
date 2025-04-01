@@ -419,7 +419,7 @@ class AuthController {
   }
 
   /**
-   * Request password reset
+   * Handle forgot password request
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
@@ -427,13 +427,13 @@ class AuthController {
     try {
       const { email } = req.body;
       
-      // Find user
+      // Find user with this email
       const user = await User.findOne({ email });
       
       if (!user) {
         return res.status(404).json({
           success: false,
-          message: 'User not found'
+          message: 'No user found with that email'
         });
       }
       
@@ -441,17 +441,12 @@ class AuthController {
       const resetToken = user.getResetPasswordToken();
       await user.save({ validateBeforeSave: false });
       
-      // In a real app, send an email with reset link
-      // For demo, we'll just return the token
+      // In a production app, this would send an email with a reset link
+      // For security, we only acknowledge the request here
       
       res.status(200).json({
         success: true,
-        message: 'Password reset link generated',
-        data: {
-          resetToken,
-          // In production, this would be sent via email, not returned in the response
-          resetUrl: `${req.protocol}://${req.get('host')}/api/auth/reset-password/${resetToken}`
-        }
+        message: 'If your email exists in our system, you will receive password reset instructions'
       });
     } catch (error) {
       console.error('Forgot password error:', error);

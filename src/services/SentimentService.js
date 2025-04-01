@@ -39,8 +39,49 @@ class SentimentService {
       }
       
       // In a real implementation, this would call external sentiment API
-      // For now, generate mock sentiment data
-      const sentimentData = this.generateMockSentiment(projectName);
+      const sentimentData = {
+        overall: 'neutral',
+        score: 50,
+        trendDirection: 'stable',
+        lastUpdate: new Date().toISOString(),
+        mediaSources: [
+          {
+            source: 'Twitter',
+            sentiment: 'neutral',
+            score: 50,
+            sampleSize: 0,
+            timestamp: new Date().toISOString()
+          },
+          {
+            source: 'News Articles',
+            sentiment: 'neutral',
+            score: 50,
+            sampleSize: 0,
+            timestamp: new Date().toISOString()
+          },
+          {
+            source: 'Local Media',
+            sentiment: 'neutral',
+            score: 50,
+            sampleSize: 0,
+            timestamp: new Date().toISOString()
+          }
+        ],
+        keywords: [
+          {
+            keyword: projectName,
+            frequency: 50
+          },
+          {
+            keyword: 'investment',
+            frequency: 25
+          },
+          {
+            keyword: 'infrastructure',
+            frequency: 25
+          }
+        ]
+      };
       
       // Cache the results
       this.sentimentCache.set(cacheKey, sentimentData);
@@ -62,90 +103,18 @@ class SentimentService {
   }
 
   /**
-   * Generate mock sentiment data for testing
-   * @param {string} projectName Project name
-   * @returns {Object} Mock sentiment data
-   */
-  generateMockSentiment(projectName) {
-    // Random sentiment score between 0-100
-    const score = Math.floor(Math.random() * 100);
-    
-    // Determine sentiment category
-    let overall;
-    if (score >= 70) {
-      overall = 'positive';
-    } else if (score >= 40) {
-      overall = 'neutral';
-    } else {
-      overall = 'negative';
-    }
-    
-    // Determine trend
-    const trendOptions = ['improving', 'declining', 'stable'];
-    const trendDirection = trendOptions[Math.floor(Math.random() * trendOptions.length)];
-    
-    // Create mock media sources
-    const mediaSources = [
-      {
-        source: 'Twitter',
-        sentiment: overall,
-        score: score + (Math.random() * 10 - 5),
-        sampleSize: Math.floor(Math.random() * 1000) + 100,
-        timestamp: new Date().toISOString()
-      },
-      {
-        source: 'News Articles',
-        sentiment: overall,
-        score: score + (Math.random() * 10 - 5),
-        sampleSize: Math.floor(Math.random() * 50) + 10,
-        timestamp: new Date().toISOString()
-      },
-      {
-        source: 'Kenya Local Media',
-        sentiment: overall,
-        score: score + (Math.random() * 10 - 5),
-        sampleSize: Math.floor(Math.random() * 30) + 5,
-        timestamp: new Date().toISOString()
-      }
-    ];
-    
-    return {
-      overall,
-      score,
-      trendDirection,
-      lastUpdate: new Date().toISOString(),
-      mediaSources,
-      keywords: [
-        {
-          keyword: projectName,
-          frequency: Math.floor(Math.random() * 100) + 50
-        },
-        {
-          keyword: 'investment',
-          frequency: Math.floor(Math.random() * 100) + 20
-        },
-        {
-          keyword: 'infrastructure',
-          frequency: Math.floor(Math.random() * 100) + 30
-        }
-      ]
-    };
-  }
-
-  /**
    * Analyze sentiment from a specific source
-   * @param {string} projectName Project name
-   * @param {string} source Source name (e.g., 'twitter', 'news')
+   * @param {string} source The source to analyze (twitter, news, blogs, etc)
+   * @param {Object} project Project data
    * @returns {Object} Source-specific sentiment data
    */
-  async analyzeSourceSentiment(projectName, source) {
+  async analyzeSourceSentiment(source, project) {
     // This would call a specific API for the given source
-    // For now, return mock data
     return {
       source,
-      sentiment: Math.random() > 0.3 ? 'positive' : 'neutral',
-      score: Math.floor(Math.random() * 100),
-      sampleSize: Math.floor(Math.random() * 1000) + 100,
+      sentiment: 'neutral',
+      score: 50,
+      sampleSize: 0,
       timestamp: new Date().toISOString()
     };
   }
@@ -158,18 +127,18 @@ class SentimentService {
    */
   async trackSentimentTrend(projectId, days = 30) {
     // This would fetch historical sentiment data
-    // For now, generate mock trend data
     const trend = [];
     const now = new Date();
     
+    // Return a flat line of neutral sentiment
     for (let i = 0; i < days; i++) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
       
       trend.push({
         date: date.toISOString(),
-        score: Math.floor(Math.random() * 100),
-        volume: Math.floor(Math.random() * 1000) + 100
+        score: 50,
+        volume: 0
       });
     }
     
@@ -186,26 +155,24 @@ class SentimentService {
    */
   async compareSentiment(projectNames) {
     try {
-      // Analyze sentiment for each project
-      const results = await Promise.all(
-        projectNames.map(async projectName => {
-          const sentiment = await this.analyzeSentiment(projectName);
-          return {
-            projectName,
-            sentiment
-          };
-        })
-      );
-      
-      // Determine rankings
-      const rankings = [...results].sort((a, b) => b.sentiment.score - a.sentiment.score);
+      // Create neutral sentiment for each project
+      const results = projectNames.map(projectName => {
+        return {
+          projectName,
+          sentiment: {
+            overall: 'neutral',
+            score: 50,
+            trendDirection: 'stable'
+          }
+        };
+      });
       
       return {
         projects: results,
-        rankings: rankings.map((item, index) => ({
+        rankings: results.map((item, index) => ({
           rank: index + 1,
           projectName: item.projectName,
-          score: item.sentiment.score
+          score: 50
         })),
         timestamp: new Date().toISOString()
       };
@@ -222,38 +189,14 @@ class SentimentService {
    */
   async getSentimentTiming(projectId) {
     try {
-      // Get current sentiment
-      const sentiment = await this.analyzeSentiment(projectId);
+      const sentiment = {
+        overall: 'neutral',
+        score: 50
+      };
       
-      // Get historical trend
-      const trend = await this.trackSentimentTrend(projectId, 30);
-      
-      // Calculate momentum (rate of change over last 7 days)
-      const recentTrend = trend.slice(-7);
-      const startScore = recentTrend[0].score;
-      const endScore = recentTrend[recentTrend.length - 1].score;
-      const momentum = endScore - startScore;
-      
-      // Determine recommendation
-      let recommendation;
-      let confidence;
-      
-      if (sentiment.score > 70 && momentum > 5) {
-        recommendation = 'strong_buy';
-        confidence = 'high';
-      } else if (sentiment.score > 60 && momentum > 0) {
-        recommendation = 'buy';
-        confidence = 'medium';
-      } else if (sentiment.score < 30 && momentum < -5) {
-        recommendation = 'avoid';
-        confidence = 'high';
-      } else if (sentiment.score < 40 && momentum < 0) {
-        recommendation = 'cautious';
-        confidence = 'medium';
-      } else {
-        recommendation = 'neutral';
-        confidence = 'medium';
-      }
+      const momentum = 0;
+      const recommendation = 'neutral';
+      const confidence = 'low';
       
       return {
         projectId,
@@ -285,9 +228,9 @@ class SentimentService {
       case 'cautious':
         return `The project has somewhat negative sentiment (${sentiment.score}/100) with slight negative momentum (${momentum} points). Consider waiting for sentiment improvement before investing.`;
       case 'neutral':
-        return `The project has mixed sentiment (${sentiment.score}/100) with relatively stable momentum (${momentum} points). No strong timing signal in either direction based on current sentiment analysis.`;
+        return `The project has neutral sentiment (${sentiment.score}/100) with stable momentum. No strong timing signal in either direction based on current sentiment analysis.`;
       default:
-        return `Current sentiment is ${sentiment.score}/100 with momentum of ${momentum} points over the last 7 days.`;
+        return `Current sentiment is ${sentiment.score}/100 with neutral momentum.`;
     }
   }
 }

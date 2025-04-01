@@ -20,6 +20,10 @@ const Dashboard = () => {
     risk: 'Low'
   });
 
+  const [portfolio, setPortfolio] = useState({
+    tokenBalance: {}
+  });
+
   const [featuredProjects, setFeaturedProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -60,11 +64,11 @@ const Dashboard = () => {
                 
                 // Update portfolio stats
                 setPortfolioStats({
-                  totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]),
-                  changePercent: 3.2, // Mock data for now
-                  projects: tokenCount,
-                  returns: 12.5, // Mock data for now
-                  risk: 'Medium' // Mock data for now
+                  totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]) || 0,
+                  changePercent: 0, // Will be calculated when historical data is available
+                  projects: tokenCount || 0,
+                  returns: 0, // Will be calculated when investment data is available
+                  risk: getRiskLevelText(50) // Default risk level
                 });
               }
             }
@@ -77,39 +81,8 @@ const Dashboard = () => {
         console.error('Error fetching dashboard data:', err);
         setError(err.message || 'Failed to load dashboard data');
         
-        // If API fails, fallback to sample data
-        setFeaturedProjects([
-          {
-            id: 1,
-            name: 'Nairobi Commuter Rail',
-            type: 'Transportation',
-            roi: 8.5,
-            riskLevel: 'Medium',
-            esgScore: 78,
-            progress: 45,
-            icon: <FaRoad className="h-6 w-6 text-primary" />
-          },
-          {
-            id: 2,
-            name: 'Lake Turkana Wind Power',
-            type: 'Energy',
-            roi: 12.8,
-            riskLevel: 'Medium-High',
-            esgScore: 92,
-            progress: 68,
-            icon: <FaLightbulb className="h-6 w-6 text-yellow-500" />
-          },
-          {
-            id: 3,
-            name: 'Mombasa Water Supply',
-            type: 'Water',
-            roi: 6.2,
-            riskLevel: 'Low',
-            esgScore: 85,
-            progress: 85,
-            icon: <FaLeaf className="h-6 w-6 text-secondary" />
-          }
-        ]);
+        // Use empty array instead of demo projects
+        setFeaturedProjects([]);
       } finally {
         setIsLoading(false);
       }
@@ -172,15 +145,21 @@ const Dashboard = () => {
 
   // Chart data for portfolio allocation
   const portfolioAllocationData = {
-    labels: ['Transportation', 'Energy', 'Water', 'Other'],
+    labels: Object.keys(portfolio?.tokenBalance || {}).length > 0 
+      ? Object.keys(portfolio.tokenBalance) 
+      : ['No Data'],
     datasets: [
       {
-        data: [30, 40, 20, 10],
+        data: Object.keys(portfolio?.tokenBalance || {}).length > 0 
+          ? Object.values(portfolio.tokenBalance)
+          : [1],
         backgroundColor: [
           '#3b82f6',
           '#f59e0b',
           '#10b981',
           '#6366f1',
+          '#ec4899',
+          '#8b5cf6',
         ],
         borderWidth: 0,
       },
@@ -189,11 +168,11 @@ const Dashboard = () => {
 
   // Chart data for performance over time
   const performanceData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    labels: ['Current'],
     datasets: [
       {
         label: 'Portfolio Value',
-        data: [20000, 21500, 22800, 23400, 24500, 25000],
+        data: [portfolioStats.totalValue || 0],
         fill: false,
         borderColor: '#3b82f6',
         tension: 0.1,
@@ -295,54 +274,73 @@ const Dashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredProjects.map((project) => (
-            <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:border-blue-200">
-              <div className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="transition-transform duration-300 hover:rotate-[15deg] hover:scale-110">
-                    {project.icon}
+          {featuredProjects.length > 0 ? (
+            featuredProjects.map((project) => (
+              <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transform transition-all duration-300 hover:scale-102 hover:shadow-md hover:border-blue-200">
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="transition-transform duration-300 hover:rotate-[15deg] hover:scale-110">
+                      {project.icon}
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-800 ml-2">{project.name}</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-800 ml-2">{project.name}</h3>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Type:</span>
-                    <span className="font-medium text-gray-700">{project.type}</span>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Type:</span>
+                      <span className="font-medium text-gray-700">{project.type}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Expected ROI:</span>
+                      <span className="font-medium text-gray-700">{project.roi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Risk Level:</span>
+                      <span className="font-medium text-gray-700">{project.riskLevel}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">ESG Score:</span>
+                      <span className="font-medium text-gray-700">{project.esgScore}/100</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Progress:</span>
+                      <span className="font-medium text-gray-700">{project.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-700 ease-in-out" 
+                        style={{ width: `${project.progress}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Expected ROI:</span>
-                    <span className="font-medium text-gray-700">{project.roi}%</span>
+                  <div className="mt-4">
+                    <Link 
+                      to={`/projects/${project.id}`} 
+                      className="block w-full text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition-all duration-300 hover:shadow-lg transform hover:translate-y-[-2px]"
+                    >
+                      View Project
+                    </Link>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Risk Level:</span>
-                    <span className="font-medium text-gray-700">{project.riskLevel}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">ESG Score:</span>
-                    <span className="font-medium text-gray-700">{project.esgScore}/100</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Progress:</span>
-                    <span className="font-medium text-gray-700">{project.progress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full transition-all duration-700 ease-in-out" 
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Link 
-                    to={`/projects/${project.id}`} 
-                    className="block w-full text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-md transition-all duration-300 hover:shadow-lg transform hover:translate-y-[-2px]"
-                  >
-                    View Project
-                  </Link>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="flex flex-col items-center justify-center space-y-4">
+                <FaBuilding className="h-12 w-12 text-gray-400" />
+                <h3 className="text-lg font-medium text-gray-700">No projects available</h3>
+                <p className="text-gray-500 max-w-md mx-auto">Create your first infrastructure project to start building your tokenized portfolio.</p>
+                <Link 
+                  to="/projects/create" 
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                  Create New Project
+                </Link>
+              </div>
             </div>
-          ))}
+          )}
         </div>
       </div>
 

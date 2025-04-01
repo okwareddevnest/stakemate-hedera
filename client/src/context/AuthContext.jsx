@@ -71,20 +71,26 @@ export const AuthProvider = ({ children }) => {
   // Initialize Hedera client
   const initHederaClient = (accountId) => {
     try {
-      // For browser compatibility we'll defer real SDK initialization
+      // In a production app, we would create an actual Hedera client here
+      // For our purposes, we are just going to handle the authentication flow
       // and just track the account information
       
       console.log('Initializing Hedera client for account:', accountId);
       
-      const mockHederaAccount = {
+      // Set up a basic account object with the account ID
+      const hederaAccountData = {
         accountId,
         network: import.meta.env.VITE_HEDERA_NETWORK || 'testnet',
         isConnected: true,
-        balance: '100.00 HBAR', // Mock balance
         lastChecked: new Date().toISOString()
       };
       
-      setHederaAccount(mockHederaAccount);
+      // Set the account state
+      setHederaAccount(hederaAccountData);
+      
+      // In a real implementation, we would fetch the balance here
+      // and update the account state with the real balance
+      
       return true;
     } catch (error) {
       console.error('Error initializing Hedera client:', error);

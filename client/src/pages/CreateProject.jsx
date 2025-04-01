@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { projectService } from '../services/api';
@@ -21,8 +21,10 @@ import {
   Step,
   StepLabel,
   FormHelperText,
-  CircularProgress
+  CircularProgress,
+  Snackbar
 } from '@mui/material';
+import { FaCheckCircle, FaExclamationTriangle, FaArrowLeft, FaArrowRight, FaSave } from 'react-icons/fa';
 
 const projectTypes = [
   'Transportation',
@@ -59,6 +61,7 @@ const CreateProject = () => {
   const [error, setError] = useState(null);
   const [tokenCreationStatus, setTokenCreationStatus] = useState(null);
   const [topicCreationStatus, setTopicCreationStatus] = useState(null);
+  const [alert, setAlert] = useState(null);
   
   // Form state
   const [projectData, setProjectData] = useState({
@@ -188,8 +191,23 @@ const CreateProject = () => {
       const createdProject = await projectService.createProject(projectData);
       
       if (createdProject) {
-        setTokenCreationStatus('Token created: ' + createdProject.tokenId);
-        setTopicCreationStatus('Discussion topic created: ' + createdProject.discussionTopicId);
+        const tokenMessage = createdProject.tokenId 
+          ? `Token created: ${createdProject.tokenId}${createdProject.simulated ? ' (Simulated)' : ''}`
+          : 'Token creation skipped';
+          
+        const topicMessage = createdProject.discussionTopicId 
+          ? `Discussion topic created: ${createdProject.discussionTopicId}${createdProject.simulated ? ' (Simulated)' : ''}`
+          : 'Topic creation skipped';
+        
+        setTokenCreationStatus(tokenMessage);
+        setTopicCreationStatus(topicMessage);
+        
+        // Show success alert before redirecting
+        setAlert({
+          show: true,
+          severity: 'success',
+          message: `Project "${createdProject.name}" created successfully!`
+        });
         
         // Redirect to the project page
         setTimeout(() => {
@@ -198,7 +216,25 @@ const CreateProject = () => {
       }
     } catch (err) {
       console.error('Error creating project:', err);
-      setError(err.message || 'Failed to create project');
+      
+      let errorMessage = 'Failed to create project';
+      if (err.message) {
+        errorMessage += `: ${err.message}`;
+      }
+      
+      // If it's a signature error, provide more helpful guidance
+      if (err.message && err.message.includes('INVALID_SIGNATURE')) {
+        errorMessage = 'Failed to create token: Invalid signature. Check your Hedera account credentials or enable simulation mode.';
+      }
+      
+      setError(errorMessage);
+      
+      // Show error alert
+      setAlert({
+        show: true,
+        severity: 'error',
+        message: errorMessage
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -488,13 +524,18 @@ const CreateProject = () => {
             
             <Box sx={{ mt: 3 }}>
               <Typography variant="subtitle1">Hedera Integration</Typography>
+              <Alert severity="info" sx={{ mt: 1, mb: 2 }}>
+                <Typography component="div">
+                  <strong>Mode:</strong> {import.meta.env.VITE_ENABLE_SIMULATION === 'true' ? 'Simulation (no actual transactions)' : 'Production'}
+                </Typography>
+              </Alert>
               <Typography>
                 <strong>Important:</strong> Creating this project will:
               </Typography>
               <ul>
                 <li>Create a fungible token on Hedera with symbol {projectData.symbol}</li>
                 <li>Create a discussion topic on Hedera for this project</li>
-                <li>Set the treasury account to: {projectData.treasuryAccountId}</li>
+                <li>Set the treasury account to: {projectData.treasuryAccountId || import.meta.env.VITE_HEDERA_TREASURY_ID}</li>
               </ul>
             </Box>
             
@@ -591,6 +632,15 @@ const CreateProject = () => {
           </Box>
         </form>
       </Paper>
+      <Snackbar
+        open={alert?.show}
+        autoHideDuration={6000}
+        onClose={() => setAlert({ ...alert, show: false })}
+      >
+        <Alert onClose={() => setAlert({ ...alert, show: false })} severity={alert?.severity}>
+          {alert?.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

@@ -20,8 +20,8 @@ import {
   Alert,
   Tabs,
   Tab,
+  CircularProgress
 } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -58,6 +58,9 @@ const ProjectDetail = () => {
   }, [id]);
 
   const handleInvestmentSubmit = async () => {
+    // Prevent duplicate submissions
+    if (investing) return;
+    
     setInvesting(true);
     setError(null);
     
@@ -70,9 +73,13 @@ const ProjectDetail = () => {
 
       if (result.success) {
         setInvestmentSuccess({
-          amount: investmentAmount,
+          amount: result.amount,
           tokenAmount: result.tokenAmount,
-          transactionIds: result.transactionIds
+          investorAccountId: result.investorAccountId,
+          treasuryAccountId: result.treasuryAccountId,
+          transactionIds: result.transactionIds,
+          status: result.status,
+          timestamp: result.createdAt
         });
         setShowInvestDialog(false);
         
@@ -133,7 +140,7 @@ const ProjectDetail = () => {
         </Button>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
+          <Grid sm={12} lg={8}>
             <Card sx={{ mb: 3 }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={activeTab} onChange={handleTabChange}>
@@ -157,53 +164,59 @@ const ProjectDetail = () => {
                     Project Timeline
                   </Typography>
                   <Typography variant="body2">
-                    Start Date: {new Date(project.timeline.startDate).toLocaleDateString()}
+                    Start Date: {project.timeline?.startDate ? new Date(project.timeline.startDate).toLocaleDateString() : 'Not set'}
                   </Typography>
                   <Typography variant="body2">
-                    Estimated Completion: {new Date(project.timeline.estimatedCompletionDate).toLocaleDateString()}
+                    Estimated Completion: {project.timeline?.estimatedCompletionDate ? new Date(project.timeline.estimatedCompletionDate).toLocaleDateString() : 'Not set'}
                   </Typography>
 
                   <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
                     ESG Metrics
                   </Typography>
                   <Typography variant="body2">
-                    Environmental Impact: {project.esgMetrics.environmentalImpact}
+                    Environmental Impact: {project.esgMetrics?.environmentalImpact || 'Not available'}
                   </Typography>
                   <Typography variant="body2">
-                    Social Benefit: {project.esgMetrics.socialBenefit}
+                    Social Benefit: {project.esgMetrics?.socialBenefit || 'Not available'}
                   </Typography>
                   <Typography variant="body2">
-                    Jobs Created: {project.esgMetrics.jobsCreated}
+                    Jobs Created: {project.esgMetrics?.jobsCreated || 0}
                   </Typography>
                   <Typography variant="body2">
-                    Carbon Reduction: {project.esgMetrics.carbonReduction} tons CO2/year
+                    Carbon Reduction: {project.esgMetrics?.carbonReduction || 0} tons CO2/year
                   </Typography>
                 </CardContent>
               ) : (
                 <CardContent>
-                  <HederaTopicChat topicId={project.discussionTopicId} />
+                  {project.discussionTopicId ? (
+                    <HederaTopicChat topicId={project.discussionTopicId} />
+                  ) : (
+                    <Typography variant="body1" color="text.secondary">
+                      No discussion topic has been created for this project yet.
+                    </Typography>
+                  )}
                 </CardContent>
               )}
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid sm={12} lg={4}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Investment Details
                 </Typography>
                 <Typography variant="body2">
-                  Expected Return: {project.financials.expectedReturn}%
+                  Expected Return: {project.financials?.expectedReturn || 0}%
                 </Typography>
                 <Typography variant="body2">
-                  Total Budget: ${project.financials.totalBudget.toLocaleString()}
+                  Total Budget: ${(project.financials?.totalBudget || 0).toLocaleString()}
                 </Typography>
                 <Typography variant="body2">
-                  Funding Secured: ${project.financials.fundingSecured.toLocaleString()}
+                  Funding Secured: ${(project.financials?.fundingSecured || 0).toLocaleString()}
                 </Typography>
                 <Typography variant="body2">
-                  Minimum Investment: ${project.investmentMetrics.minInvestmentAmount.toLocaleString()}
+                  Minimum Investment: ${(project.investmentMetrics?.minInvestmentAmount || 0).toLocaleString()}
                 </Typography>
 
                 {tokenInfo && (
@@ -254,17 +267,40 @@ const ProjectDetail = () => {
 
             {investmentSuccess && (
               <Alert severity="success" sx={{ mt: 2 }}>
-                <Typography variant="body2">
-                  Successfully invested ${investmentSuccess.amount} HBAR
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Investment Simulation Successful!
                 </Typography>
                 <Typography variant="body2">
-                  Received {investmentSuccess.tokenAmount} {tokenInfo?.symbol || 'tokens'}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  HBAR Transaction: {investmentSuccess.transactionIds.hbar}
+                  Successfully invested ${investmentSuccess.amount} HBAR (simulated)
                 </Typography>
                 <Typography variant="body2">
-                  Token Transaction: {investmentSuccess.transactionIds.token}
+                  Received {investmentSuccess.tokenAmount} {tokenInfo?.symbol || 'tokens'} (simulated)
+                </Typography>
+                <Box sx={{ mt: 1, p: 1, bgcolor: 'rgba(0, 0, 0, 0.03)', borderRadius: 1 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    Transaction Details:
+                  </Typography>
+                  <Typography variant="body2">
+                    Status: {investmentSuccess.status}
+                  </Typography>
+                  {investmentSuccess.investorAccountId && (
+                    <Typography variant="body2">
+                      Investor Account: {investmentSuccess.investorAccountId}
+                    </Typography>
+                  )}
+                  {investmentSuccess.treasuryAccountId && (
+                    <Typography variant="body2">
+                      Treasury Account: {investmentSuccess.treasuryAccountId}
+                    </Typography>
+                  )}
+                  {investmentSuccess.timestamp && (
+                    <Typography variant="body2">
+                      Timestamp: {new Date(investmentSuccess.timestamp).toLocaleString()}
+                    </Typography>
+                  )}
+                </Box>
+                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
+                  Note: Transactions are simulated. In a production environment, actual Hedera transactions would be executed.
                 </Typography>
               </Alert>
             )}
@@ -275,6 +311,19 @@ const ProjectDetail = () => {
       <Dialog open={showInvestDialog} onClose={() => setShowInvestDialog(false)}>
         <DialogTitle>Invest in {project.name}</DialogTitle>
         <DialogContent>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>Simulation Mode:</strong> Investments are simulated using your Hedera account. 
+              {user?.hederaAccountId ? (
+                <Typography component="span" fontWeight="medium">
+                  {" "}Your Hedera Account ID: {user.hederaAccountId}
+                </Typography>
+              ) : (
+                " No Hedera account ID detected. The operator account will be used."
+              )}
+            </Typography>
+          </Alert>
+          
           <TextField
             autoFocus
             margin="dense"
@@ -283,27 +332,34 @@ const ProjectDetail = () => {
             fullWidth
             value={investmentAmount}
             onChange={(e) => setInvestmentAmount(e.target.value)}
-            inputProps={{ min: project.investmentMetrics.minInvestmentAmount }}
+            inputProps={{ min: project.investmentMetrics?.minInvestmentAmount || 0 }}
           />
+          
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}
+              {error.includes('INVALID_SIGNATURE') && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  This error usually occurs when trying to transfer HBAR from an account that the application doesn't have the private key for.
+                </Typography>
+              )}
             </Alert>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowInvestDialog(false)}>Cancel</Button>
-          <LoadingButton
-            loading={investing}
-            onClick={handleInvestmentSubmit}
+          <Button
             variant="contained"
+            onClick={handleInvestmentSubmit}
             disabled={
+              investing ||
               !investmentAmount ||
-              parseFloat(investmentAmount) < project.investmentMetrics.minInvestmentAmount
+              parseFloat(investmentAmount) < (project.investmentMetrics?.minInvestmentAmount || 0)
             }
+            startIcon={investing ? <CircularProgress size={20} color="inherit" /> : null}
           >
             Confirm Investment
-          </LoadingButton>
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

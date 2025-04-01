@@ -83,6 +83,27 @@ class HederaService {
     await this.ensureInitialized();
 
     try {
+      // Check if we're using simulation mode
+      const useSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (useSimulation) {
+        console.log('SIMULATION MODE: Creating topic without actual Hedera transaction');
+        
+        // Generate a simulated topic ID
+        const operatorId = this.operatorId ? this.operatorId.toString() : '0.0.5781013';
+        const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const simulatedTopicId = `0.0.${randomSuffix}`;
+        
+        return {
+          success: true,
+          topicId: simulatedTopicId,
+          transactionId: `simulated-topic-creation-${Date.now()}`,
+          explorerUrl: `https://hashscan.io/${this.network}/topic/${simulatedTopicId}`,
+          simulated: true
+        };
+      }
+
+      // If not in simulation mode, proceed with actual topic creation
       let transaction = new TopicCreateTransaction()
         .setTopicMemo(memo);
 
@@ -90,9 +111,12 @@ class HederaService {
         transaction.setSubmitKey(this.operatorKey.publicKey);
       }
 
+      console.log('Creating topic transaction...');
       const txResponse = await transaction.execute(this.client);
+      console.log('Topic transaction executed, getting receipt...');
       const receipt = await txResponse.getReceipt(this.client);
       const topicId = receipt.topicId.toString();
+      console.log(`Topic created successfully with ID: ${topicId}`);
 
       return {
         success: true,
@@ -102,6 +126,25 @@ class HederaService {
       };
     } catch (error) {
       console.error('Failed to create topic:', error);
+      
+      // Check if we should fall back to simulation
+      const fallbackToSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (fallbackToSimulation) {
+        console.log('Falling back to simulation mode due to error');
+        const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const simulatedTopicId = `0.0.${randomSuffix}`;
+        
+        return {
+          success: true,
+          topicId: simulatedTopicId,
+          transactionId: `simulated-topic-creation-${Date.now()}`,
+          explorerUrl: `https://hashscan.io/${this.network || 'testnet'}/topic/${simulatedTopicId}`,
+          simulated: true,
+          originalError: error.message
+        };
+      }
+      
       return { success: false, error: error.message };
     }
   }
@@ -308,23 +351,65 @@ class HederaService {
    * Transfer HBAR between accounts
    * @param {string} fromAccountId - Sender account ID
    * @param {string} toAccountId - Recipient account ID
-   * @param {number} amount - Amount to transfer in HBAR
+   * @param {number} amount - Amount to transfer
    * @param {string} memo - Transaction memo
    * @returns {Promise<object>} Transaction receipt
    */
   async transferHBAR(fromAccountId, toAccountId, amount, memo = '') {
     try {
+      // Validate input parameters
+      if (!fromAccountId || typeof fromAccountId !== 'string') {
+        throw new Error('Invalid sender account ID');
+      }
+      
+      if (!toAccountId || typeof toAccountId !== 'string') {
+        throw new Error('Invalid recipient account ID');
+      }
+      
+      if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+        throw new Error('Invalid amount');
+      }
+
+      // Check if we're using simulation mode
+      const useSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (useSimulation) {
+        console.log(`SIMULATION MODE: Transferring ${amount} HBAR from ${fromAccountId} to ${toAccountId}`);
+        
+        return {
+          success: true,
+          transactionId: `simulated-hbar-transfer-${Date.now()}`,
+          status: 'SUCCESS',
+          fromAccount: fromAccountId,
+          toAccount: toAccountId,
+          amount: amount,
+          simulated: true,
+          explorerUrl: `https://hashscan.io/${this.network}/transaction/simulated-${Date.now()}`
+        };
+      }
+
+      // If not in simulation mode, proceed with actual transfer
       const client = await this.ensureInitialized();
 
+      // Parse account IDs safely
+      console.log(`Transferring ${amount} HBAR from ${fromAccountId} to ${toAccountId}`);
+      const senderAccount = AccountId.fromString(fromAccountId);
+      const recipientAccount = AccountId.fromString(toAccountId);
+      
+      console.log('Creating HBAR transfer transaction...');
       const transaction = await new TransferTransaction()
-        .addHbarTransfer(AccountId.fromString(fromAccountId), new Hbar(-amount))
-        .addHbarTransfer(AccountId.fromString(toAccountId), new Hbar(amount))
+        .addHbarTransfer(senderAccount, new Hbar(-amount))
+        .addHbarTransfer(recipientAccount, new Hbar(amount))
         .setTransactionMemo(memo)
         .freezeWith(client);
 
+      console.log('Signing HBAR transfer transaction...');
       const signedTx = await transaction.sign(this.operatorKey);
+      console.log('Executing HBAR transfer transaction...');
       const txResponse = await signedTx.execute(client);
+      console.log('Getting HBAR transfer receipt...');
       const receipt = await txResponse.getReceipt(client);
+      console.log(`HBAR transfer completed with status: ${receipt.status}`);
 
       return {
         success: true,
@@ -334,6 +419,26 @@ class HederaService {
       };
     } catch (error) {
       console.error('Failed to transfer HBAR:', error);
+      
+      // Check if we should fall back to simulation
+      const fallbackToSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (fallbackToSimulation) {
+        console.log('Falling back to simulation mode due to error');
+        
+        return {
+          success: true,
+          transactionId: `simulated-hbar-transfer-fallback-${Date.now()}`,
+          status: 'SUCCESS',
+          fromAccount: fromAccountId,
+          toAccount: toAccountId,
+          amount: amount,
+          simulated: true,
+          originalError: error.message,
+          explorerUrl: `https://hashscan.io/${this.network || 'testnet'}/transaction/simulated-${Date.now()}`
+        };
+      }
+      
       return {
         success: false,
         error: error.message
@@ -348,9 +453,38 @@ class HederaService {
    */
   async createToken(tokenParams) {
     try {
+      // Check if we're using simulation mode
+      const useSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (useSimulation) {
+        console.log('SIMULATION MODE: Creating token without actual Hedera transaction');
+        
+        // Generate a simulated token ID using the treasury account ID
+        const treasuryId = this.operatorId.toString();
+        const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const simulatedTokenId = `${treasuryId.split('.')[0]}.${treasuryId.split('.')[1]}.${randomSuffix}`;
+        
+        return {
+          success: true,
+          tokenId: simulatedTokenId,
+          transactionId: `simulated-token-creation-${Date.now()}`,
+          status: 'SUCCESS',
+          explorerUrl: `https://hashscan.io/${this.network}/token/${simulatedTokenId}`,
+          simulated: true
+        };
+      }
+
+      // If not in simulation mode, proceed with actual token creation
       const client = await this.ensureInitialized();
 
-      const transaction = await new TokenCreateTransaction()
+      // Log key information for debugging
+      console.log('Creating token with the following parameters:');
+      console.log('- Name:', tokenParams.name);
+      console.log('- Symbol:', tokenParams.symbol);
+      console.log('- Treasury Account:', this.operatorId.toString());
+      console.log('- Network:', this.network);
+
+      const transaction = new TokenCreateTransaction()
         .setTokenName(tokenParams.name)
         .setTokenSymbol(tokenParams.symbol)
         .setDecimals(tokenParams.decimals || 8)
@@ -363,10 +497,14 @@ class HederaService {
         .setTokenMemo(tokenParams.memo || '')
         .freezeWith(client);
 
+      console.log('Transaction created, now signing...');
       const signedTx = await transaction.sign(this.operatorKey);
+      console.log('Transaction signed, now executing...');
       const txResponse = await signedTx.execute(client);
+      console.log('Transaction executed, getting receipt...');
       const receipt = await txResponse.getReceipt(client);
       const tokenId = receipt.tokenId.toString();
+      console.log(`Token created successfully with ID: ${tokenId}`);
 
       return {
         success: true,
@@ -377,6 +515,27 @@ class HederaService {
       };
     } catch (error) {
       console.error('Failed to create token:', error);
+      
+      // Check if we should fall back to simulation
+      const fallbackToSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (fallbackToSimulation) {
+        console.log('Falling back to simulation mode due to error');
+        const treasuryId = this.operatorId ? this.operatorId.toString() : '0.0.5781013';
+        const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        const simulatedTokenId = `${treasuryId.split('.')[0]}.${treasuryId.split('.')[1]}.${randomSuffix}`;
+        
+        return {
+          success: true,
+          tokenId: simulatedTokenId,
+          transactionId: `simulated-token-creation-${Date.now()}`,
+          status: 'SUCCESS',
+          explorerUrl: `https://hashscan.io/${this.network || 'testnet'}/token/${simulatedTokenId}`,
+          simulated: true,
+          originalError: error.message
+        };
+      }
+      
       return {
         success: false,
         error: error.message
@@ -497,32 +656,73 @@ class HederaService {
    */
   async transferToken(tokenId, fromAccountId, toAccountId, amount, memo = '') {
     try {
+      console.log(`Transferring ${amount} tokens of ${tokenId} from ${fromAccountId} to ${toAccountId}`);
+      
+      if (!tokenId || !fromAccountId || !toAccountId) {
+        throw new Error('Missing required parameters for token transfer');
+      }
+      
+      // Check if we're using simulation mode
+      const useSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (useSimulation) {
+        console.log(`SIMULATION MODE: Transferring ${amount} tokens of ${tokenId} from ${fromAccountId} to ${toAccountId}`);
+        
+        return {
+          success: true,
+          transactionId: `simulated-token-transfer-${Date.now()}`,
+          status: 'SUCCESS',
+          fromAccount: fromAccountId,
+          toAccount: toAccountId,
+          tokenId: tokenId,
+          amount: amount,
+          simulated: true,
+          explorerUrl: `https://hashscan.io/${this.network}/transaction/simulated-${Date.now()}`
+        };
+      }
+      
       const client = await this.ensureInitialized();
+
+      // Only proceed if we're transferring from the operator account or have an explicit privateKey
+      if (fromAccountId !== this.operatorId.toString()) {
+        console.warn('Warning: Attempting to transfer tokens from an account that may not be the operator account');
+        console.warn('This will likely fail unless the account exactly matches the configured operator ID');
+      }
 
       // First, ensure the receiving account is associated with the token
       try {
+        console.log(`Checking if account ${toAccountId} is associated with token ${tokenId}...`);
+        
         const associateTransaction = await new TokenAssociateTransaction()
           .setAccountId(AccountId.fromString(toAccountId))
           .setTokenIds([tokenId])
           .freezeWith(client);
 
+        console.log('Signing token association transaction...');
         const signedAssociateTx = await associateTransaction.sign(this.operatorKey);
+        console.log('Executing token association transaction...');
         await signedAssociateTx.execute(client);
+        console.log('Token association completed or already exists');
       } catch (error) {
         // If the token is already associated, this will fail but we can continue
         console.log('Note: Token may already be associated with the account or other error:', error.message);
       }
 
       // Now transfer the tokens
-      const transaction = await new TransferTransaction()
+      console.log(`Creating token transfer transaction...`);
+      const transaction = new TransferTransaction()
         .addTokenTransfer(tokenId, AccountId.fromString(fromAccountId), -amount)
         .addTokenTransfer(tokenId, AccountId.fromString(toAccountId), amount)
         .setTransactionMemo(memo)
         .freezeWith(client);
 
+      console.log('Signing token transfer transaction...');
       const signedTx = await transaction.sign(this.operatorKey);
+      console.log('Executing token transfer transaction...');
       const txResponse = await signedTx.execute(client);
+      console.log('Getting token transfer receipt...');
       const receipt = await txResponse.getReceipt(client);
+      console.log(`Token transfer completed with status: ${receipt.status}`);
 
       return {
         success: true,
@@ -532,6 +732,27 @@ class HederaService {
       };
     } catch (error) {
       console.error('Failed to transfer tokens:', error);
+      
+      // Check if we should fall back to simulation
+      const fallbackToSimulation = import.meta.env.VITE_ENABLE_SIMULATION === 'true';
+      
+      if (fallbackToSimulation) {
+        console.log('Falling back to simulation mode due to error');
+        
+        return {
+          success: true,
+          transactionId: `simulated-token-transfer-fallback-${Date.now()}`,
+          status: 'SUCCESS',
+          fromAccount: fromAccountId,
+          toAccount: toAccountId,
+          tokenId: tokenId,
+          amount: amount,
+          simulated: true,
+          originalError: error.message,
+          explorerUrl: `https://hashscan.io/${this.network || 'testnet'}/transaction/simulated-${Date.now()}`
+        };
+      }
+      
       return {
         success: false,
         error: error.message

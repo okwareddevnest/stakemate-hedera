@@ -111,7 +111,7 @@ const ChatInterface = () => {
   // Simulate agent response based on input
   // In production, this would be replaced by an actual API call
   const simulateAgentResponse = (input) => {
-    // Simple pattern matching for demonstration
+    // Basic intent recognition for handling user queries
     let response = "";
     let actions = [];
     

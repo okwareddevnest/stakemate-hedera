@@ -52,69 +52,8 @@ const Projects = () => {
         console.error('Error fetching projects:', err);
         setError(err.message || 'Failed to load projects');
         
-        // Use sample projects as fallback if API fails
-        setProjects([
-          {
-            id: 1,
-            name: 'Nairobi Commuter Rail',
-            type: 'Transportation',
-            location: 'Nairobi, Kenya',
-            roi: 8.5,
-            riskLevel: 'Medium',
-            esgScore: 78,
-            progress: 45,
-            description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-            minInvestment: 5000,
-            totalFunding: 45000000,
-            currentFunding: 28000000,
-            icon: <FaRoad />
-          },
-          {
-            id: 2,
-            name: 'Lake Turkana Wind Power',
-            type: 'Energy',
-            location: 'Turkana, Kenya',
-            roi: 12.8,
-            riskLevel: 'Medium-High',
-            esgScore: 92,
-            progress: 68,
-            description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
-            minInvestment: 10000,
-            totalFunding: 85000000,
-            currentFunding: 62000000,
-            icon: <FaLightbulb />
-          },
-          {
-            id: 3,
-            name: 'Mombasa Water Supply',
-            type: 'Water',
-            location: 'Mombasa, Kenya',
-            roi: 6.2,
-            riskLevel: 'Low',
-            esgScore: 85,
-            progress: 85,
-            description: 'Infrastructure to improve clean water access for Mombasa residents and surrounding communities.',
-            minInvestment: 3000,
-            totalFunding: 28000000,
-            currentFunding: 24000000,
-            icon: <FaWater />
-          },
-          {
-            id: 4,
-            name: 'Nakuru Smart City Initiative',
-            type: 'Digital',
-            location: 'Nakuru, Kenya',
-            roi: 9.4,
-            riskLevel: 'Medium',
-            esgScore: 74,
-            progress: 35,
-            description: 'Smart infrastructure including digital connectivity, IoT sensors, and data management for urban planning.',
-            minInvestment: 7500,
-            totalFunding: 32000000,
-            currentFunding: 12000000,
-            icon: <FaNetworkWired />
-          }
-        ]);
+        // No demo projects as fallback - just show empty list
+        setProjects([]);
       } finally {
         setIsLoading(false);
       }
@@ -259,17 +198,99 @@ const Projects = () => {
     setSearchTerm('');
   };
   
-  // Show error message if there's an error
-  const renderErrorMessage = () => {
-    if (!error) return null;
-    
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        <div className="flex items-center">
-          <FaExclamationTriangle className="h-5 w-5 mr-2" />
-          <span>Error loading projects</span>
+  // Render the filteredProjects
+  const renderProjects = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
-        <p className="text-sm mt-1">Request failed with status code 404</p>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <FaExclamationTriangle className="h-5 w-5 text-red-500" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (filteredProjects.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-500 mb-4">No projects available.</p>
+          <Link to="/projects/create" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Create New Project
+          </Link>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProjects.map((project) => (
+          <Link 
+            key={project.id} 
+            to={`/projects/${project.id}`}
+            className="group block bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-300"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <div className="p-2 bg-gray-50 rounded-full mr-3">
+                    {project.icon}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors">{project.name}</h3>
+                    <p className="text-sm text-gray-500">{project.location}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRiskColor(project.riskLevel)}`}>
+                  {project.riskLevel}
+                </span>
+              </div>
+              
+              <p className="text-sm text-gray-600 line-clamp-2 mb-4">{project.description}</p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <p className="text-xs text-gray-500">ROI</p>
+                  <p className="text-sm font-medium">{project.roi}%</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">ESG Score</p>
+                  <p className="text-sm font-medium">{project.esgScore}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Min Investment</p>
+                  <p className="text-sm font-medium">${project.minInvestment.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Progress</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1.5">
+                    <div 
+                      className="bg-primary h-2.5 rounded-full" 
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-100 pt-3 mt-3">
+                <p className="text-xs text-gray-500">Token ID</p>
+                <p className="text-sm font-medium truncate">{project.tokenId || 'Not tokenized yet'}</p>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     );
   };
@@ -310,84 +331,90 @@ const Projects = () => {
           </button>
         </div>
         
-        {/* ... Rest of the filtering UI ... */}
-      </div>
-
-      {/* Display error message if there is one */}
-      {renderErrorMessage()}
-
-      {/* If loading, show loading state */}
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        // Projects grid
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
-            <div key={project.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-center h-12 w-12 rounded-md bg-primary-light text-primary mb-4">
-                  {project.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.name}</h3>
-                <p className="text-sm text-gray-600 mb-4">{project.location}</p>
-                <p className="text-sm text-gray-700 mb-4 line-clamp-3">{project.description}</p>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Type</p>
-                    <p className="font-medium">{project.type}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Expected ROI</p>
-                    <p className="font-medium">{project.roi}%</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Risk Level</p>
-                    <p className="font-medium">{project.riskLevel}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">ESG Score</p>
-                    <p className="font-medium">{project.esgScore}/100</p>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Progress</span>
-                    <span>{project.progress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-primary rounded-full h-2" 
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <p className="text-xs text-gray-500">Min. Investment</p>
-                    <p className="font-medium">{project.minInvestment.toLocaleString()} KES</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Funding</p>
-                    <p className="font-medium">{Math.round((project.currentFunding / project.totalFunding) * 100)}%</p>
-                  </div>
-                </div>
-                
-                <Link
-                  to={`/projects/${project.id}`}
-                  className="w-full block text-center bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded transition duration-150 ease-in-out"
+        {/* Filter panel */}
+        {showFilters && (
+          <div className="mt-4 p-6 bg-white rounded-lg shadow-sm border border-gray-200 animate-slideDown">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Project Type</label>
+                <select
+                  name="type"
+                  value={filters.type}
+                  onChange={handleFilterChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                 >
-                  View Project
-                </Link>
+                  <option value="">All Types</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Energy">Energy</option>
+                  <option value="Water">Water</option>
+                  <option value="Digital">Digital</option>
+                  <option value="Social">Social</option>
+                  <option value="Environmental">Environmental</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Minimum ROI</label>
+                <input
+                  type="range"
+                  name="minROI"
+                  min="0"
+                  max="15"
+                  step="0.5"
+                  value={filters.minROI}
+                  onChange={handleFilterChange}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="block text-center text-sm mt-1">
+                  {filters.minROI}%+
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Maximum Risk</label>
+                <select
+                  name="maxRisk"
+                  value={filters.maxRisk}
+                  onChange={handleFilterChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Any Risk</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium-Low">Medium-Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Medium-High">Medium-High</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Minimum ESG Score</label>
+                <input
+                  type="range"
+                  name="minESG"
+                  min="0"
+                  max="100"
+                  step="5"
+                  value={filters.minESG}
+                  onChange={handleFilterChange}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="block text-center text-sm mt-1">
+                  {filters.minESG}+
+                </span>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setFilters({ type: '', minROI: 0, maxRisk: '', minESG: 0 })}
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
+                Reset Filters
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Render the projects */}
+      {renderProjects()}
     </div>
   );
 };

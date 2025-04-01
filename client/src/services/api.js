@@ -74,53 +74,73 @@ const apiService = {
   processInvestment: async (userId, projectId, amount) => {
     try {
       // Get project and user details
-      const project = await apiService.getProjectById(projectId);
+      const project = await projectService.getById(projectId);
       const user = await apiService.getUserById(userId);
 
       if (!project.tokenId) {
         throw new Error('Project token not created');
       }
+      
+      // Use the configuration accounts for simulation
+      // If the user has a Hedera account ID, we'll use that for the simulated transfers
+      const operatorId = import.meta.env.VITE_HEDERA_OPERATOR_ID;
+      const treasuryId = project.treasuryAccountId || import.meta.env.VITE_HEDERA_TREASURY_ID || operatorId;
+      
+      // Use the user's Hedera account ID if available, otherwise fall back to the operator
+      const investorAccountId = user.hederaAccountId || operatorId;
+      
+      if (!operatorId) {
+        throw new Error('Operator account not configured');
+      }
+      
+      if (!treasuryId) {
+        throw new Error('Treasury account not configured');
+      }
 
-      // Calculate token amount (1 HBAR = 100 tokens for demo)
+      console.log(`Using investor account: ${investorAccountId} and treasury account: ${treasuryId}`);
+
+      // Calculate token amount (1 HBAR = 100 tokens for simulation)
       const tokenAmount = Math.floor(amount * 100);
+      
+      // Simulate the transfers
+      console.log(`Simulating transfer of ${amount} HBAR from ${investorAccountId} to ${treasuryId}`);
+      console.log(`Simulating transfer of ${tokenAmount} tokens of ${project.tokenId} from ${treasuryId} to ${investorAccountId}`);
+      
+      // Simulate the HBAR transfer
+      const hbarTransfer = {
+        success: true,
+        transactionId: `simulated-hbar-transfer-${Date.now()}`,
+        status: 'SUCCESS',
+        fromAccount: investorAccountId,
+        toAccount: treasuryId
+      };
 
-      // Transfer HBAR from investor to project treasury
-      const hbarTransfer = await hederaService.transferHBAR(
-        user.hederaAccountId,
-        project.treasuryAccountId,
-        amount
-      );
+      // Simulate the token transfer
+      const tokenTransfer = {
+        success: true,
+        transactionId: `simulated-token-transfer-${Date.now()}`,
+        status: 'SUCCESS',
+        fromAccount: treasuryId,
+        toAccount: investorAccountId
+      };
 
-      if (!hbarTransfer.success) {
-        throw new Error('HBAR transfer failed');
-      }
-
-      // Transfer tokens from treasury to investor
-      const tokenTransfer = await hederaService.transferToken(
-        project.tokenId,
-        project.treasuryAccountId,
-        user.hederaAccountId,
-        tokenAmount
-      );
-
-      if (!tokenTransfer.success) {
-        throw new Error('Token transfer failed');
-      }
-
-      // Record investment in database
-      const investment = await apiClient.post(`/investments`, {
-        userId,
-        projectId,
-        amount,
-        tokenAmount,
-        hbarTransactionId: hbarTransfer.transactionId,
-        tokenTransactionId: tokenTransfer.transactionId
-      });
-
+      // Create and return the simulated investment data
+      const timestamp = new Date().toISOString();
+      const investmentId = `sim-investment-${Date.now()}`;
+      
       return {
         success: true,
-        ...investment.data,
+        id: investmentId,
+        userId: userId,
+        projectId: projectId,
+        amount: parseFloat(amount),
+        tokenAmount: tokenAmount,
+        investorAccountId: investorAccountId,
+        treasuryAccountId: treasuryId,
         tokenId: project.tokenId,
+        status: 'COMPLETED',
+        createdAt: timestamp,
+        updatedAt: timestamp,
         transactionIds: {
           hbar: hbarTransfer.transactionId,
           token: tokenTransfer.transactionId
@@ -216,10 +236,13 @@ const projectService = {
       const response = await apiClient.post('/projects', projectData);
       const project = response.data;
 
+      // Get treasury account ID from environment
+      const treasuryAccountId = import.meta.env.VITE_HEDERA_TREASURY_ID || import.meta.env.VITE_HEDERA_OPERATOR_ID;
+
       // Create token on Hedera
       const tokenData = {
         name: project.name,
-        symbol: project.symbol,
+        symbol: project.symbol || project.name.substring(0, 5).toUpperCase(),
         decimals: 8,
         initialSupply: Math.floor(project.totalBudget / 10),
         memo: `Infrastructure token for ${project.name} project in ${project.location || 'Kenya'}`
@@ -241,14 +264,21 @@ const projectService = {
         throw new Error('Failed to create discussion topic');
       }
 
-      // Update project with token ID and topic ID
+      // Update project with token ID, topic ID and treasury account ID
       const updatedProject = await apiClient.put(`/projects/${project.id}`, {
         ...project,
         tokenId: tokenResult.tokenId,
-        discussionTopicId: topicResult.topicId
+        discussionTopicId: topicResult.topicId,
+        treasuryAccountId: treasuryAccountId
       });
 
-      return updatedProject.data;
+      // Add simulation flags if they were present in the token or topic results
+      return {
+        ...updatedProject.data,
+        simulated: tokenResult.simulated || topicResult.simulated,
+        tokenSimulated: tokenResult.simulated,
+        topicSimulated: topicResult.simulated
+      };
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;

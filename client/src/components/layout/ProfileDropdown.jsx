@@ -51,8 +51,8 @@ const ProfileDropdown = () => {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 z-20">
           <div className="p-3 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-800">{user?.name || 'Demo User'}</p>
-            <p className="text-xs text-gray-500 truncate">{user?.email || 'demo@example.com'}</p>
+            <p className="text-sm font-semibold text-gray-800">{user?.name || 'Guest User'}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email || 'Not signed in'}</p>
           </div>
           
           <div className="py-1">
