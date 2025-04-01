@@ -39,11 +39,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       >
         {/* Logo & Close Button */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-          <img 
-            src="/images/stakebaner.jpg" 
-            alt="StakeMate" 
-            className="h-8 w-auto object-contain hover:opacity-80 transition-colors duration-300"
-          />
+          <h1 className="text-xl font-bold text-gray-800 hover:text-blue-600 transition-colors duration-300">StakeMate</h1>
           <button
             onClick={toggleSidebar}
             className="text-gray-500 hover:text-gray-700 hover:rotate-90 transform transition-all duration-300 focus:outline-none lg:hidden"
