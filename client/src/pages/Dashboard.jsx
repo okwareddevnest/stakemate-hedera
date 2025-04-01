@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { FaArrowUp, FaArrowDown, FaChartLine, FaBuilding, FaLeaf, FaLightbulb, FaRoad, FaRobot } from 'react-icons/fa';
-import apiService, { hederaService } from '../services/api';
+import { FaArrowUp, FaArrowDown, FaChartLine, FaBuilding, FaLeaf, FaLightbulb, FaRoad, FaRobot, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa';
+import apiService, { hederaService, portfolioService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Import chart components
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement, Title } from 'chart.js';
@@ -27,17 +28,70 @@ const Dashboard = () => {
   const [featuredProjects, setFeaturedProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [hederaStatus, setHederaStatus] = useState({ isConfigured: false });
-  const [accountInfo, setAccountInfo] = useState({});
+  const [hederaStatus, setHederaStatus] = useState({ isConnected: false, network: '', accountId: '' });
+  
+  // Get auth context to access user and account info
+  const { user, hederaAccount } = useAuth();
   
   // Fetch data on component mount
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
+        // Check Hedera connection status
+        const checkHederaStatus = async () => {
+          try {
+            // Check if we have account info from auth context
+            if (hederaAccount && hederaAccount.isConnected) {
+              setHederaStatus({
+                isConnected: true,
+                network: hederaAccount.network || 'testnet',
+                accountId: hederaAccount.accountId,
+                lastChecked: hederaAccount.lastChecked
+              });
+              return hederaAccount;
+            }
+            
+            // Otherwise, try to get status from backend
+            const statusResponse = await hederaService.getStatus();
+            if (statusResponse?.success) {
+              setHederaStatus({
+                isConnected: true,
+                network: statusResponse.data?.network || 'testnet',
+                accountId: statusResponse.data?.accountId || 'Not Available',
+                lastChecked: new Date().toISOString()
+              });
+              return statusResponse.data;
+            }
+            
+            // If we reached here, connection failed
+            setHederaStatus({
+              isConnected: false,
+              network: 'Not connected',
+              accountId: 'Not available',
+              lastChecked: new Date().toISOString()
+            });
+            return null;
+          } catch (error) {
+            console.error('Error checking Hedera status:', error);
+            setHederaStatus({
+              isConnected: false,
+              network: 'Error',
+              accountId: 'Not available',
+              error: error.message,
+              lastChecked: new Date().toISOString()
+            });
+            return null;
+          }
+        };
+        
+        // Check Hedera status first
+        const status = await checkHederaStatus();
+        
         // Fetch projects
         const projectsResponse = await apiService.getProjects();
         if (projectsResponse && Array.isArray(projectsResponse)) {
+          // Set featured projects (max 3)
           setFeaturedProjects(projectsResponse.slice(0, 3).map(project => ({
             id: project.id,
             name: project.name,
@@ -48,34 +102,91 @@ const Dashboard = () => {
             progress: calculateProgress(project.timeline),
             icon: getProjectIcon(project.type)
           })));
+          
+          // Calculate average returns from all projects
+          const totalReturns = projectsResponse.reduce((sum, project) => 
+            sum + (project.financials?.expectedReturn || 0), 0);
+          const avgReturns = projectsResponse.length ? 
+            (totalReturns / projectsResponse.length).toFixed(2) : 0;
+            
+          // Calculate average risk level from all projects
+          const totalRisk = projectsResponse.reduce((sum, project) => 
+            sum + (project.risk?.overallScore || 50), 0);
+          const avgRisk = projectsResponse.length ? 
+            totalRisk / projectsResponse.length : 50;
+          const riskLevel = getRiskLevelText(avgRisk);
+          
+          // Fetch portfolio data if user is authenticated
+          if (user?.id) {
+            try {
+              const portfolioData = await portfolioService.getUserPortfolio(user.id);
+              if (portfolioData) {
+                setPortfolio({
+                  tokenBalance: portfolioData.tokenBalance || {},
+                  totalValue: portfolioData.totalValue || 0,
+                  investments: portfolioData.investments || []
+                });
+                
+                // Set portfolio stats based on actual data
+                setPortfolioStats(prevStats => ({
+                  ...prevStats,
+                  totalValue: portfolioData.totalValue || 0,
+                  changePercent: portfolioData.changePercent || 0,
+                  projects: projectsResponse.length,
+                  returns: parseFloat(avgReturns),
+                  risk: riskLevel
+                }));
+              }
+            } catch (error) {
+              console.error('Error fetching portfolio data:', error);
+              
+              // Set portfolio stats with project data only
+              setPortfolioStats(prevStats => ({
+                ...prevStats,
+                projects: projectsResponse.length,
+                returns: parseFloat(avgReturns),
+                risk: riskLevel
+              }));
+            }
+          } else {
+            // No user authenticated, just update project-related stats
+            setPortfolioStats(prevStats => ({
+              ...prevStats,
+              projects: projectsResponse.length,
+              returns: parseFloat(avgReturns),
+              risk: riskLevel
+            }));
+          }
         }
         
-        // Fetch Hedera status
-        try {
-          const statusResponse = await hederaService.getStatus();
-          if (statusResponse?.success) {
-            setHederaStatus(statusResponse.data);
-            
-            // If we have an account ID, fetch its balance
-            if (statusResponse.data.accountId) {
-              const balanceResponse = await hederaService.getAccountBalance(statusResponse.data.accountId);
-              if (balanceResponse?.success) {
-                const tokenCount = Object.keys(JSON.parse(balanceResponse.data.tokens || '{}')).length;
-                
-                // Update portfolio stats
-                setPortfolioStats({
-                  totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]) || 0,
-                  changePercent: 0, // Will be calculated when historical data is available
-                  projects: tokenCount || 0,
-                  returns: 0, // Will be calculated when investment data is available
-                  risk: getRiskLevelText(50) // Default risk level
-                });
+        // If we have Hedera account info, fetch balances
+        if (status?.accountId && hederaStatus.isConnected) {
+          try {
+            const balanceResponse = await hederaService.getAccountBalance(status.accountId);
+            if (balanceResponse?.success) {
+              // Parse token balances if available
+              const tokens = balanceResponse.data?.tokens ? 
+                JSON.parse(balanceResponse.data.tokens) : {};
+              
+              // Update portfolio with actual balance data
+              setPortfolio(prevPortfolio => ({
+                ...prevPortfolio,
+                tokenBalance: tokens,
+                hbarBalance: parseFloat(balanceResponse.data.hbars.split(' ')[0]) || 0
+              }));
+              
+              // Update total value in portfolio stats if needed
+              if (!user?.id) {
+                // Only update if we didn't get portfolio from user data
+                setPortfolioStats(prevStats => ({
+                  ...prevStats,
+                  totalValue: parseFloat(balanceResponse.data.hbars.split(' ')[0]) || 0
+                }));
               }
             }
+          } catch (error) {
+            console.error('Error fetching account balance:', error);
           }
-        } catch (error) {
-          console.error('Error fetching Hedera status:', error);
-          setHederaStatus({ isConfigured: false });
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -89,7 +200,48 @@ const Dashboard = () => {
     };
     
     fetchDashboardData();
-  }, []);
+  }, [user, hederaAccount]);
+  
+  // Prepare chart data
+  const portfolioAllocationData = useMemo(() => {
+    return {
+      labels: Object.keys(portfolio?.tokenBalance || {}).length > 0 
+        ? Object.keys(portfolio.tokenBalance) 
+        : ['No Data'],
+      datasets: [
+        {
+          data: Object.keys(portfolio?.tokenBalance || {}).length > 0 
+            ? Object.values(portfolio.tokenBalance)
+            : [1],
+          backgroundColor: [
+            '#3b82f6',
+            '#f59e0b',
+            '#10b981',
+            '#6366f1',
+            '#ec4899',
+            '#8b5cf6',
+          ],
+          borderWidth: 0,
+        },
+      ],
+    };
+  }, [portfolio.tokenBalance]);
+
+  // Chart data for performance over time
+  const performanceData = useMemo(() => {
+    return {
+      labels: ['Current'],
+      datasets: [
+        {
+          label: 'Portfolio Value',
+          data: [portfolioStats.totalValue || 0],
+          fill: false,
+          borderColor: '#3b82f6',
+          tension: 0.1,
+        },
+      ],
+    };
+  }, [portfolioStats.totalValue]);
   
   // Helper functions
   const getRiskLevelText = (riskScore) => {
@@ -142,43 +294,6 @@ const Dashboard = () => {
         return <FaBuilding className="h-6 w-6 text-gray-500" />;
     }
   };
-
-  // Chart data for portfolio allocation
-  const portfolioAllocationData = {
-    labels: Object.keys(portfolio?.tokenBalance || {}).length > 0 
-      ? Object.keys(portfolio.tokenBalance) 
-      : ['No Data'],
-    datasets: [
-      {
-        data: Object.keys(portfolio?.tokenBalance || {}).length > 0 
-          ? Object.values(portfolio.tokenBalance)
-          : [1],
-        backgroundColor: [
-          '#3b82f6',
-          '#f59e0b',
-          '#10b981',
-          '#6366f1',
-          '#ec4899',
-          '#8b5cf6',
-        ],
-        borderWidth: 0,
-      },
-    ],
-  };
-
-  // Chart data for performance over time
-  const performanceData = {
-    labels: ['Current'],
-    datasets: [
-      {
-        label: 'Portfolio Value',
-        data: [portfolioStats.totalValue || 0],
-        fill: false,
-        borderColor: '#3b82f6',
-        tension: 0.1,
-      },
-    ],
-  };
   
   // Loading state
   if (isLoading) {
@@ -198,17 +313,25 @@ const Dashboard = () => {
       </div>
 
       {/* Network status alert */}
-      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6 hover:shadow-md transition-shadow duration-300">
+      <div className={`${hederaStatus.isConnected ? 'bg-green-50 border-green-400' : 'bg-yellow-50 border-yellow-400'} border-l-4 p-4 rounded-md mb-6 hover:shadow-md transition-shadow duration-300`}>
         <div className="flex items-start">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400 transition-transform duration-300 hover:scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
+            {hederaStatus.isConnected ? (
+              <FaCheckCircle className="h-5 w-5 text-green-500 transition-transform duration-300 hover:scale-110" />
+            ) : (
+              <FaExclamationTriangle className="h-5 w-5 text-yellow-400 transition-transform duration-300 hover:scale-110" />
+            )}
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Hedera Network Status: Disconnected</h3>
-            <div className="mt-1 text-sm text-yellow-700">
-              <p>Hedera network connection is not properly configured. Please check server configuration.</p>
+            <h3 className="text-sm font-medium text-gray-800">
+              Hedera Network Status: {hederaStatus.isConnected ? 'Connected' : 'Disconnected'}
+            </h3>
+            <div className="mt-1 text-sm text-gray-700">
+              {hederaStatus.isConnected ? (
+                <p>Connected to Hedera {hederaStatus.network} network using account {hederaStatus.accountId}.</p>
+              ) : (
+                <p>Hedera network connection is not properly configured. Please check server configuration.</p>
+              )}
             </div>
           </div>
         </div>
@@ -223,7 +346,7 @@ const Dashboard = () => {
             <div className="flex items-baseline">
               <h3 className="text-2xl font-bold text-gray-800">{portfolioStats.totalValue.toLocaleString()} ℏ</h3>
               <span className={`ml-2 text-sm font-medium ${portfolioStats.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {portfolioStats.changePercent >= 0 ? <FaArrowUp className="h-3 w-3 mr-1" /> : <FaArrowDown className="h-3 w-3 mr-1" />}
+                {portfolioStats.changePercent >= 0 ? <FaArrowUp className="inline h-3 w-3 mr-1" /> : <FaArrowDown className="inline h-3 w-3 mr-1" />}
                 {Math.abs(portfolioStats.changePercent).toFixed(1)}%
               </span>
             </div>
