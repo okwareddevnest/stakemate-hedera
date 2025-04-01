@@ -6,6 +6,7 @@ import Sidebar from './components/layout/Sidebar'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
+import CreateProject from './pages/CreateProject'
 import Portfolio from './pages/Portfolio'
 import ChatInterface from './pages/ChatInterface'
 import Profile from './pages/Profile'
@@ -66,6 +67,7 @@ function AppContent() {
                     <Routes>
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/projects" element={<Projects />} />
+                      <Route path="/projects/create" element={<CreateProject />} />
                       <Route path="/projects/:id" element={<ProjectDetail />} />
                       <Route path="/portfolio" element={<Portfolio />} />
                       <Route path="/chat" element={<ChatInterface />} />

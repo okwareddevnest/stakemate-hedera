@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaSearch, FaFilter, FaLeaf, FaLightbulb, FaRoad, FaWater, FaNetworkWired, FaBuilding, FaExclamationTriangle } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaSearch, FaFilter, FaLeaf, FaLightbulb, FaRoad, FaWater, FaNetworkWired, FaBuilding, FaExclamationTriangle, FaPlus } from 'react-icons/fa';
 import apiService from '../services/api';
 
 const Projects = () => {
+  const navigate = useNavigate();
   // State for projects and loading status
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -274,35 +275,42 @@ const Projects = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Infrastructure Projects</h1>
-          <p className="text-gray-600">Explore tokenized projects available for micro-investing</p>
-        </div>
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-slate-800">Infrastructure Projects</h1>
+        <button
+          onClick={() => navigate('/projects/create')}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center"
+        >
+          <FaPlus className="mr-2" /> Create New Project
+        </button>
       </div>
 
       {/* Search and filter section */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="flex-1 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FaSearch className="h-5 w-5 text-gray-400" />
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-grow">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Search projects by name or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            placeholder="Search projects by name, description or location..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-2 flex items-center justify-center shadow-sm hover:bg-gray-50"
+          >
+            <FaFilter className="mr-2 text-gray-600" />
+            <span className="text-gray-700">Filter</span>
+          </button>
         </div>
-        <button
-          className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          <FaFilter className="mr-2 h-4 w-4" />
-          <span>Filters</span>
-        </button>
+        
+        {/* ... Rest of the filtering UI ... */}
       </div>
 
       {/* Display error message if there is one */}

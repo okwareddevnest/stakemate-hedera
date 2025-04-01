@@ -1,4 +1,5 @@
 import axios from 'axios';
+import hederaService from './hederaService';
 
 // Base API URL - gets from environment variables or uses default
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
@@ -33,122 +34,7 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error('Error getting projects:', error);
-      
-      // Return some sample projects as fallback
-      return [
-        {
-          id: 'project-1743082201640',
-          name: 'Nairobi Commuter Rail',
-          type: 'Transportation',
-          location: 'Nairobi, Kenya',
-          description: 'Urban railway system connecting Nairobi suburbs to reduce traffic congestion and carbon emissions.',
-          risk: {
-            overallScore: 45
-          },
-          financials: {
-            expectedReturn: 8.5,
-            totalBudget: 45000000,
-            fundingSecured: 28000000
-          },
-          esgMetrics: {
-            environmentalImpact: 'positive',
-            socialBenefit: 'high',
-            jobsCreated: 1200,
-            carbonReduction: 60000
-          },
-          investmentMetrics: {
-            minInvestmentAmount: 5000
-          },
-          timeline: {
-            startDate: '2023-01-01',
-            estimatedCompletionDate: '2025-12-31'
-          }
-        },
-        {
-          id: 'project-1743082201641',
-          name: 'Lake Turkana Wind Power',
-          type: 'Energy',
-          location: 'Turkana, Kenya',
-          description: 'Expansion of wind power facility to generate clean energy for northern Kenya communities.',
-          risk: {
-            overallScore: 65
-          },
-          financials: {
-            expectedReturn: 12.8,
-            totalBudget: 85000000,
-            fundingSecured: 62000000
-          },
-          esgMetrics: {
-            environmentalImpact: 'very positive',
-            socialBenefit: 'high',
-            jobsCreated: 800,
-            carbonReduction: 120000
-          },
-          investmentMetrics: {
-            minInvestmentAmount: 10000
-          },
-          timeline: {
-            startDate: '2023-03-15',
-            estimatedCompletionDate: '2026-06-30'
-          }
-        },
-        {
-          id: 'project-1743082201642',
-          name: 'Mombasa Water Supply',
-          type: 'Water',
-          location: 'Mombasa, Kenya',
-          description: 'Infrastructure to improve clean water access for Mombasa residents and surrounding communities.',
-          risk: {
-            overallScore: 25
-          },
-          financials: {
-            expectedReturn: 6.2,
-            totalBudget: 28000000,
-            fundingSecured: 24000000
-          },
-          esgMetrics: {
-            environmentalImpact: 'positive',
-            socialBenefit: 'high',
-            jobsCreated: 300,
-            carbonReduction: 15000
-          },
-          investmentMetrics: {
-            minInvestmentAmount: 3000
-          },
-          timeline: {
-            startDate: '2022-06-10',
-            estimatedCompletionDate: '2024-08-31'
-          }
-        },
-        {
-          id: 'project-1743082201643',
-          name: 'Nakuru Smart City Initiative',
-          type: 'Digital',
-          location: 'Nakuru, Kenya',
-          description: 'Smart infrastructure including digital connectivity, IoT sensors, and data management for urban planning.',
-          risk: {
-            overallScore: 55
-          },
-          financials: {
-            expectedReturn: 9.4,
-            totalBudget: 32000000,
-            fundingSecured: 12000000
-          },
-          esgMetrics: {
-            environmentalImpact: 'neutral',
-            socialBenefit: 'medium',
-            jobsCreated: 450,
-            carbonReduction: 8000
-          },
-          investmentMetrics: {
-            minInvestmentAmount: 7500
-          },
-          timeline: {
-            startDate: '2023-05-20',
-            estimatedCompletionDate: '2025-02-28'
-          }
-        }
-      ];
+      throw error;
     }
   },
   getProjectById: async (projectId) => {
@@ -156,38 +42,8 @@ const apiService = {
       const response = await apiClient.get(`/projects/${projectId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error getting project ${projectId}:`, error);
-      
-      // Return fallback project data
-      return {
-        id: projectId,
-        name: projectId.startsWith('inv-') ? 'Investment Opportunity' : 'Sample Infrastructure Project',
-        type: 'Transportation',
-        location: 'Nairobi, Kenya',
-        description: 'This is a sample infrastructure project used as fallback when API calls fail.',
-        risk: {
-          overallScore: 45
-        },
-        financials: {
-          expectedReturn: 8.5,
-          totalBudget: 45000000,
-          fundingSecured: 28000000
-        },
-        esgMetrics: {
-          environmentalImpact: 'positive',
-          socialBenefit: 'high',
-          jobsCreated: 1200,
-          carbonReduction: 60000
-        },
-        investmentMetrics: {
-          minInvestmentAmount: 5000
-        },
-        timeline: {
-          startDate: '2023-01-01',
-          estimatedCompletionDate: '2025-12-31'
-        },
-        symbol: 'SPX'
-      };
+      console.error('Error getting project:', error);
+      throw error;
     }
   },
   
@@ -217,16 +73,99 @@ const apiService = {
   // Investment endpoints
   processInvestment: async (userId, projectId, amount) => {
     try {
-      const response = await apiClient.post(
-        `/tokens/users/${userId}/projects/${projectId}/invest`,
-        { amount }
+      // Get project and user details
+      const project = await apiService.getProjectById(projectId);
+      const user = await apiService.getUserById(userId);
+
+      if (!project.tokenId) {
+        throw new Error('Project token not created');
+      }
+
+      // Calculate token amount (1 HBAR = 100 tokens for demo)
+      const tokenAmount = Math.floor(amount * 100);
+
+      // Transfer HBAR from investor to project treasury
+      const hbarTransfer = await hederaService.transferHBAR(
+        user.hederaAccountId,
+        project.treasuryAccountId,
+        amount
       );
-      return response.data;
+
+      if (!hbarTransfer.success) {
+        throw new Error('HBAR transfer failed');
+      }
+
+      // Transfer tokens from treasury to investor
+      const tokenTransfer = await hederaService.transferToken(
+        project.tokenId,
+        project.treasuryAccountId,
+        user.hederaAccountId,
+        tokenAmount
+      );
+
+      if (!tokenTransfer.success) {
+        throw new Error('Token transfer failed');
+      }
+
+      // Record investment in database
+      const investment = await apiClient.post(`/investments`, {
+        userId,
+        projectId,
+        amount,
+        tokenAmount,
+        hbarTransactionId: hbarTransfer.transactionId,
+        tokenTransactionId: tokenTransfer.transactionId
+      });
+
+      return {
+        success: true,
+        ...investment.data,
+        tokenId: project.tokenId,
+        transactionIds: {
+          hbar: hbarTransfer.transactionId,
+          token: tokenTransfer.transactionId
+        }
+      };
     } catch (error) {
       console.error('Error processing investment:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  },
+
+  // Token endpoints
+  getTokenInfo: async (tokenId) => {
+    try {
+      return await hederaService.getTokenInfo(tokenId);
+    } catch (error) {
+      console.error('Error getting token info:', error);
       throw error;
     }
   },
+
+  // User endpoints
+  getUserById: async (userId) => {
+    try {
+      const response = await apiClient.get(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      throw error;
+    }
+  },
+
+  // Portfolio endpoints
+  getUserPortfolio: async (userId) => {
+    try {
+      const response = await apiClient.get(`/users/${userId}/portfolio`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting user portfolio:', error);
+      throw error;
+    }
+  }
 };
 
 // Project endpoints
@@ -273,8 +212,43 @@ const projectService = {
   
   createProject: async (projectData) => {
     try {
+      // Create project in database
       const response = await apiClient.post('/projects', projectData);
-      return response.data;
+      const project = response.data;
+
+      // Create token on Hedera
+      const tokenData = {
+        name: project.name,
+        symbol: project.symbol,
+        decimals: 8,
+        initialSupply: Math.floor(project.totalBudget / 10),
+        memo: `Infrastructure token for ${project.name} project in ${project.location || 'Kenya'}`
+      };
+
+      const tokenResult = await hederaService.createToken(tokenData);
+      
+      if (!tokenResult.success) {
+        throw new Error('Failed to create token on Hedera');
+      }
+
+      // Create discussion topic
+      const topicResult = await hederaService.createTopic(
+        `Discussion topic for ${project.name} project`,
+        true // Require submit key for messages
+      );
+
+      if (!topicResult.success) {
+        throw new Error('Failed to create discussion topic');
+      }
+
+      // Update project with token ID and topic ID
+      const updatedProject = await apiClient.put(`/projects/${project.id}`, {
+        ...project,
+        tokenId: tokenResult.tokenId,
+        discussionTopicId: topicResult.topicId
+      });
+
+      return updatedProject.data;
     } catch (error) {
       console.error('Error creating project:', error);
       throw error;
@@ -283,7 +257,7 @@ const projectService = {
 };
 
 // Token and Hedera endpoints
-const hederaService = {
+const hederaApiService = {
   getStatus: async () => {
     try {
       const response = await apiClient.get('/direct-hedera/status');
@@ -408,5 +382,5 @@ const portfolioService = {
   }
 };
 
-export { projectService, hederaService, portfolioService };
+export { projectService, hederaApiService as hederaService, portfolioService };
 export default apiService; 
