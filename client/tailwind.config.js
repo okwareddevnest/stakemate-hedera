@@ -23,8 +23,9 @@ export default {
         '102': '1.02',
       },
       animation: {
-        'float-slow': 'float 6s ease-in-out infinite',
-        'pulse': 'pulse 3s ease-in-out infinite',
+        'float-slow': 'float 3s ease-in-out infinite',
+        'bounce-slow': 'bounce 2s ease-in-out infinite',
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-subtle': 'bounce-subtle 3s infinite',
         'blob': 'blob 7s infinite',
         'ping-slow': 'ping 3s cubic-bezier(0, 0, 0.2, 1) infinite',
@@ -44,6 +45,16 @@ export default {
         float: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        bounce: {
+          '0%, 100%': {
+            transform: 'translateY(-5%)',
+            animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)',
+          },
+          '50%': {
+            transform: 'translateY(0)',
+            animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)',
+          },
         },
         'bounce-subtle': {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -107,6 +118,9 @@ export default {
       transitionDuration: {
         '1500': '1500ms',
         '2000': '2000ms',
+      },
+      backdropBlur: {
+        xs: '2px',
       },
     },
   },

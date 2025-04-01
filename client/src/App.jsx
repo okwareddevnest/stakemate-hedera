@@ -8,7 +8,6 @@ import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import CreateProject from './pages/CreateProject'
 import Portfolio from './pages/Portfolio'
-import ChatInterface from './pages/ChatInterface'
 import Profile from './pages/Profile'
 import Learn from './pages/Learn'
 import CourseDetail from './pages/CourseDetail'
@@ -70,7 +69,6 @@ function AppContent() {
                       <Route path="/projects/create" element={<CreateProject />} />
                       <Route path="/projects/:id" element={<ProjectDetail />} />
                       <Route path="/portfolio" element={<Portfolio />} />
-                      <Route path="/chat" element={<ChatInterface />} />
                       <Route path="/profile" element={<Profile />} />
                       <Route path="/learn" element={<Learn />} />
                       <Route path="/course/:id" element={<CourseDetail />} />

@@ -42,12 +42,13 @@ const TransparentNavbar = ({ navItems, onLogin, onRegister }) => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <div onClick={scrollToTop} className="cursor-pointer flex items-center">
-            <span className="text-xl font-bold">
-              <span className="text-pink-600">Stake</span>
-              <span className="text-blue-600">Mate</span>
-            </span>
-          </div>
+          <Link to="/" className="flex items-center space-x-2">
+            <img 
+              src="/images/logo.jpg" 
+              alt="StakeMate" 
+              className="h-10 w-auto object-contain"
+            />
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
