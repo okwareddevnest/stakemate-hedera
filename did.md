@@ -20,6 +20,7 @@ StakeMate is a decentralized platform designed to facilitate micro-investments i
 ## Portfolio Management
 ![WhatsApp Image 2025-04-01 at 23 52 00_3ee1ae48](https://github.com/user-attachments/assets/f58de40a-8772-4233-9bb9-0978a38da8d6)
 
+## 
 
 ## Conclusion
 StakeMate leverages cutting-edge technology to provide a seamless and secure investment experience, making infrastructure investment accessible to all. 
