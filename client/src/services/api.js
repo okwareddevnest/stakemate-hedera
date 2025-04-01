@@ -4,6 +4,8 @@ import hederaService from './hederaService';
 // Base API URL - gets from environment variables or uses default
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
+console.log('API base URL configured as:', API_URL);
+
 // Create axios instance with base configuration
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -11,6 +13,24 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add request logging
+apiClient.interceptors.request.use((config) => {
+  console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+  return config;
+});
+
+// Add response logging
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`API Response success: ${response.config.method.toUpperCase()} ${response.config.url}`);
+    return response;
+  },
+  (error) => {
+    console.error(`API Response error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.message);
+    return Promise.reject(error);
+  }
+);
 
 // Add auth token to requests if available
 apiClient.interceptors.request.use((config) => {
@@ -56,10 +76,27 @@ const apiService = {
     try {
       console.log(`Fetching investments for user: ${userId}`);
       const response = await apiClient.get(`/users/${userId}/investments`);
-      return {
-        success: true,
-        data: response.data
-      };
+      console.log('Investments API response:', response.data);
+      
+      // Check if the response has the expected format
+      if (response.data && response.data.success === true && Array.isArray(response.data.data)) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      } else if (Array.isArray(response.data)) {
+        // API returns array directly
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        console.log('Unexpected format from investments API:', response.data);
+        return {
+          success: true,
+          data: response.data.data || response.data || []
+        };
+      }
     } catch (error) {
       console.error(`Error fetching investments for user ${userId}:`, error);
       return {
@@ -87,6 +124,18 @@ const apiService = {
         amount,
         duration: 36 // Default duration in months
       });
+      
+      console.log('Simulation API response:', response.data);
+      
+      // Check if investment was actually created in the user's record
+      setTimeout(async () => {
+        try {
+          const investmentsCheck = await apiClient.get(`/users/${userId}/investments`);
+          console.log('Checking investments after simulation:', investmentsCheck.data);
+        } catch (err) {
+          console.error('Error checking investments after simulation:', err);
+        }
+      }, 500);
       
       return {
         success: true,
@@ -416,10 +465,21 @@ const portfolioService = {
     try {
       console.log(`Fetching portfolio for user: ${userId}`);
       const response = await apiClient.get(`/users/${userId}/portfolio`);
-      return {
-        success: true,
-        data: response.data
-      };
+      console.log('Portfolio API response:', response.data);
+      
+      // Check if the response has the expected format
+      if (response.data && response.data.success === true && response.data.data) {
+        return {
+          success: true,
+          data: response.data.data
+        };
+      } else {
+        // API returns data directly
+        return {
+          success: true,
+          data: response.data
+        };
+      }
     } catch (error) {
       console.error(`Error fetching portfolio for user ${userId}:`, error);
       return {
@@ -460,6 +520,18 @@ const portfolioService = {
         amount,
         duration: 36 // Default duration in months
       });
+      
+      console.log('Simulation API response:', response.data);
+      
+      // Check if investment was actually created in the user's record
+      setTimeout(async () => {
+        try {
+          const investmentsCheck = await apiClient.get(`/users/${userId}/investments`);
+          console.log('Checking investments after simulation:', investmentsCheck.data);
+        } catch (err) {
+          console.error('Error checking investments after simulation:', err);
+        }
+      }, 500);
       
       return {
         success: true,

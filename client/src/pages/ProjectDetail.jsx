@@ -65,12 +65,16 @@ const ProjectDetail = () => {
     setError(null);
     
     try {
+      console.log(`Attempting to simulate investment in project ${project.id} with amount ${investmentAmount} HBAR`);
+      
       // Use portfolioService.simulateInvestment to simulate an investment
       const result = await portfolioService.simulateInvestment(
         user.id,
         project.id,
         parseFloat(investmentAmount)
       );
+
+      console.log('Investment simulation result:', result);
 
       if (result.success) {
         setInvestmentSuccess({
@@ -90,15 +94,20 @@ const ProjectDetail = () => {
           setTokenInfo(tokenData);
         }
         
-        // Show success message
+        // Show success message and navigate to portfolio page
+        console.log('Investment successful, will navigate to portfolio page shortly...');
+        
+        // Ensure navigation happens after the state is updated
         setTimeout(() => {
-          // Navigate to portfolio page after 2 seconds so user can see success message
-          navigate('/portfolio');
+          console.log('Navigating to portfolio page now');
+          navigate('/portfolio', { state: { refreshPortfolio: true } });
         }, 2000);
       } else {
+        console.error('Investment simulation failed:', result.error);
         setError(result.error);
       }
     } catch (err) {
+      console.error('Error during investment:', err);
       setError(err.message);
     } finally {
       setInvesting(false);

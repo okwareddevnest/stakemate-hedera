@@ -2,22 +2,153 @@
 
 StakeMate is an AI-powered decentralized micro-investing platform that enables retail investors to participate in infrastructure tokenization on the Hedera network.
 
-![StakeMate Banner](https://i.imgur.com/your-banner-image.png)
+<p align="center">
+  <img src="screenshots/stakemate-banner.png" alt="StakeMate Banner" width="800">
+</p>
 
-## Overview
+## 📋 Overview
 
-StakeMate is designed to democratize infrastructure investment by lowering barriers to entry and providing AI-driven insights and recommendations. The platform leverages Hedera's distributed ledger technology to provide transparent, secure, and efficient investment opportunities in infrastructure projects.
+StakeMate democratizes infrastructure investment by lowering barriers to entry and providing AI-driven insights. The platform leverages Hedera's distributed ledger technology to provide transparent, secure, and efficient investment opportunities in infrastructure projects.
 
-### Key Features
+## 🔑 Key Features
 
-- **Micro-investing Platform**: Allows small-scale investments in tokenized infrastructure projects
-- **AI-Driven Insights**: Provides intelligent investment recommendations based on user profile and market data
-- **Educational Resources**: Helps users understand infrastructure investments through personalized learning paths
-- **Tokenization**: Utilizes the Hedera network for secure, transparent token issuance and management
-- **Real-time Analytics**: Offers detailed analytics on project performance and investment returns
-- **ESG Integration**: Incorporates environmental, social, and governance factors into project evaluation
+- **Micro-investing Platform**: Invest small amounts in tokenized infrastructure projects
+- **AI-Driven Insights**: Get intelligent investment recommendations based on your profile
+- **Educational Resources**: Learn about infrastructure investments through personalized learning paths
+- **Tokenization**: Utilize Hedera network for secure, transparent token management
+- **Real-time Analytics**: Track detailed project performance and investment returns
+- **ESG Integration**: Evaluate projects using environmental, social, and governance factors
 
-## Technology Stack
+## 🚶‍♂️ Project Walkthrough
+
+### 1. Authentication and Onboarding
+
+StakeMate offers secure authentication through Hedera accounts, providing a passwordless sign-in experience.
+
+<p align="center">
+  <img src="screenshots/auth-flow.png" alt="Authentication Flow" width="800">
+</p>
+
+#### Features:
+- Hedera account-based authentication
+- Multi-step verification process
+- Secure challenge-response protocol
+- Direct integration with the Hedera network
+
+#### How it works:
+1. Enter your Hedera account ID (e.g., 0.0.5781013)
+2. Connect your Hedera wallet
+3. Sign a challenge to prove ownership
+4. Access your personalized dashboard
+
+### 2. Dashboard
+
+The dashboard provides a comprehensive overview of your investment portfolio and available projects.
+
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="Dashboard" width="800">
+</p>
+
+#### Features:
+- Portfolio value tracker
+- Active projects counter
+- Expected returns calculator
+- Risk level assessment
+- Featured projects showcase
+- Portfolio allocation visualization
+- Performance charts
+
+#### Key metrics:
+- Total portfolio value
+- Number of active investments (3 in the example)
+- Average projected returns (3.33% in the example)
+- Overall risk profile (Medium in the example)
+- Performance over time
+
+### 3. Project Discovery and Analysis
+
+Browse and analyze various infrastructure projects available for investment.
+
+<p align="center">
+  <img src="screenshots/projects.png" alt="Projects" width="800">
+</p>
+
+#### Features:
+- Filterable project listings
+- Detailed project information
+- ESG metrics and impact assessment
+- Risk and return projections
+- Timeline visualization
+- Token information and performance
+
+#### Project types:
+- Transportation infrastructure (e.g., Nairobi Commuter Rail)
+- Renewable energy (e.g., Lake Turkana Wind Power)
+- Digital infrastructure (e.g., Okware)
+- Water and sanitation
+- Social infrastructure
+
+### 4. Investment Process
+
+Make informed investment decisions and execute them through a streamlined process.
+
+<p align="center">
+  <img src="screenshots/investment.png" alt="Investment" width="800">
+</p>
+
+#### Features:
+- Investment simulation
+- Token purchase interface
+- Real-time transaction status
+- Investment confirmation
+- Automatic portfolio update
+
+#### How it works:
+1. Select a project to invest in
+2. Enter your investment amount (in HBAR)
+3. Review the investment details
+4. Confirm the transaction
+5. Receive tokens in your portfolio
+
+### 5. Portfolio Management
+
+Track and manage your infrastructure investments in one place.
+
+<p align="center">
+  <img src="screenshots/portfolio.png" alt="Portfolio" width="800">
+</p>
+
+#### Features:
+- Investment history table
+- Performance tracking charts
+- Token holdings visualization
+- Allocation breakdown by project type
+- Export and transfer options
+
+#### Portfolio insights:
+- Total value of holdings
+- Initial investment amount (110 HBAR in the example)
+- Return percentages
+- Token allocations by project type (TRA, DIG)
+- Performance trends over time
+
+### 6. Learning Center
+
+Enhance your knowledge about infrastructure investments and tokenization.
+
+<p align="center">
+  <img src="screenshots/learning.png" alt="Learning Center" width="800">
+</p>
+
+#### Features:
+- Personalized learning paths
+- Interactive tutorials
+- Infrastructure investment basics
+- Tokenization fundamentals
+- Risk management strategies
+- ESG investing principles
+
+## 🛠️ Technology Stack
 
 - **Frontend**: React.js, Tailwind CSS, Chart.js
 - **Backend**: Node.js, Express
@@ -25,7 +156,7 @@ StakeMate is designed to democratize infrastructure investment by lowering barri
 - **AI/ML**: Sentiment analysis, recommendation engines, risk assessment models
 - **Database**: MongoDB
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
@@ -33,51 +164,6 @@ StakeMate is designed to democratize infrastructure investment by lowering barri
 - npm or yarn package manager
 - A Hedera testnet account (for development)
 - MongoDB v4.4 or higher
-
-### MongoDB Setup
-
-1. Install MongoDB:
-   - **Linux**: Follow the [official MongoDB installation guide](https://docs.mongodb.com/manual/administration/install-on-linux/)
-   - **macOS**: `brew install mongodb-community`
-   - **Windows**: Download and install from the [MongoDB website](https://www.mongodb.com/try/download/community)
-
-2. Start MongoDB service:
-   ```bash
-   sudo systemctl start mongod    # Linux
-   brew services start mongodb-community    # macOS
-   ```
-
-3. Create a database and user for StakeMate:
-   ```bash
-   mongosh
-   ```
-
-   ```javascript
-   // Inside the MongoDB shell
-   use stakemate
-   
-   db.createUser({
-     user: "stakemate_user",
-     pwd: "secure_password_here",
-     roles: [{ role: "readWrite", db: "stakemate" }]
-   })
-   
-   exit
-   ```
-
-4. Update your `.env` file with your MongoDB configuration (copy from `.env.example`):
-   ```
-   DB_HOST=localhost
-   DB_PORT=27017
-   DB_NAME=stakemate
-   DB_USER=stakemate_user
-   DB_PASSWORD=secure_password_here
-   ```
-
-   Alternatively, use a connection URI:
-   ```
-   DB_URI=mongodb://stakemate_user:secure_password_here@localhost:27017/stakemate
-   ```
 
 ### Installation
 
@@ -114,43 +200,11 @@ StakeMate is designed to democratize infrastructure investment by lowering barri
    npm run dev
    ```
 
-## Project Structure
+## 📊 API Integration
 
-```
-stakemate/
-├── client/                 # Frontend React application
-│   ├── public/             # Static files
-│   └── src/                # React source code
-│       ├── components/     # Reusable UI components
-│       ├── pages/          # Page components
-│       └── services/       # API services
-├── src/                    # Backend server code
-│   ├── agent/              # AI agent implementation
-│   ├── hedera/             # Hedera integration modules
-│   ├── models/             # Data models
-│   ├── services/           # Business logic services
-│   └── utils/              # Utility functions
-└── tests/                  # Test files
-```
+The platform provides a comprehensive API for integrating with external services and extending functionality. See [API_INTEGRATION.md](API_INTEGRATION.md) for detailed documentation.
 
-## Features
-
-### For Investors
-
-- **Discover Projects**: Browse and discover a variety of infrastructure projects
-- **Investment Analysis**: Get AI-powered insights on project potential
-- **Portfolio Management**: Track and manage your infrastructure investments
-- **Educational Content**: Access personalized learning resources
-- **Risk Assessment**: Understand the risk profile of different projects
-
-### For Project Owners
-
-- **Project Tokenization**: Tokenize infrastructure projects on Hedera
-- **Progress Tracking**: Update and share project milestones
-- **Compliance Management**: Ensure regulatory compliance
-- **Investor Communication**: Engage with investors and stakeholders
-
-## Roadmap
+## 🗺️ Roadmap
 
 - **Q2 2024**: Alpha release with basic functionality
 - **Q3 2024**: Integration with Hedera mainnet
@@ -158,7 +212,7 @@ stakemate/
 - **Q1 2025**: Mobile application launch
 - **Q2 2025**: Expansion to additional markets
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
@@ -168,11 +222,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - Hedera Hashgraph for providing the distributed ledger infrastructure
 - The open-source community for their invaluable tools and libraries
