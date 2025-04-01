@@ -2,9 +2,8 @@
 
 StakeMate is an AI-powered decentralized micro-investing platform that enables retail investors to participate in infrastructure tokenization on the Hedera network.
 
-<p align="center">
-  <img src="screenshots/stakemate-banner.png" alt="StakeMate Banner" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/142a56af-b215-456c-8dae-28c789620b1d)
+
 
 ## 📋 Overview
 
@@ -25,9 +24,10 @@ StakeMate democratizes infrastructure investment by lowering barriers to entry a
 
 StakeMate offers secure authentication through Hedera accounts, providing a passwordless sign-in experience.
 
-<p align="center">
-  <img src="screenshots/auth-flow.png" alt="Authentication Flow" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/bd19d479-b08a-462b-9ce4-718a03e5dc1f)
+![image](https://github.com/user-attachments/assets/fca15487-9f5f-444f-bdac-a4312e229636)
+
+
 
 #### Features:
 - Hedera account-based authentication
@@ -45,9 +45,7 @@ StakeMate offers secure authentication through Hedera accounts, providing a pass
 
 The dashboard provides a comprehensive overview of your investment portfolio and available projects.
 
-<p align="center">
-  <img src="screenshots/dashboard.png" alt="Dashboard" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/884ff8e8-a263-4502-9a78-ebda7024cb38)
 
 #### Features:
 - Portfolio value tracker
@@ -69,9 +67,10 @@ The dashboard provides a comprehensive overview of your investment portfolio and
 
 Browse and analyze various infrastructure projects available for investment.
 
-<p align="center">
-  <img src="screenshots/projects.png" alt="Projects" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/b77c9e45-845c-438e-963d-d57683e50ccf)
+![image](https://github.com/user-attachments/assets/2c4b3621-da69-45d5-9ead-63dc36ae55ee)
+
+
 
 #### Features:
 - Filterable project listings
@@ -92,9 +91,9 @@ Browse and analyze various infrastructure projects available for investment.
 
 Make informed investment decisions and execute them through a streamlined process.
 
-<p align="center">
-  <img src="screenshots/investment.png" alt="Investment" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/fdbc0c5d-ee3d-4d89-af5a-c3aa6f360114)
+![image](https://github.com/user-attachments/assets/908c8d17-c4b0-4f78-b544-04af0814867f)
+
 
 #### Features:
 - Investment simulation
@@ -114,9 +113,8 @@ Make informed investment decisions and execute them through a streamlined proces
 
 Track and manage your infrastructure investments in one place.
 
-<p align="center">
-  <img src="screenshots/portfolio.png" alt="Portfolio" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/7d351dd6-0a57-4b4d-a33e-fc4001523ad9)
+
 
 #### Features:
 - Investment history table
@@ -136,9 +134,8 @@ Track and manage your infrastructure investments in one place.
 
 Enhance your knowledge about infrastructure investments and tokenization.
 
-<p align="center">
-  <img src="screenshots/learning.png" alt="Learning Center" width="800">
-</p>
+![image](https://github.com/user-attachments/assets/a358bfc9-cbd7-4366-8b5f-8ff4360ac205)
+
 
 #### Features:
 - Personalized learning paths
@@ -233,4 +230,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-© 2024 StakeMate. All rights reserved.
+© 2025 StakeMate. All rights reserved.
