@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBars, FaBell, FaSearch, FaHome } from 'react-icons/fa';
+import { FaBars, FaBell, FaSearch, FaHome, FaChevronRight, FaChevronLeft } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 
-const Navbar = ({ toggleSidebar }) => {
+const Navbar = ({ toggleSidebar, sidebarOpen }) => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
   
@@ -13,21 +13,29 @@ const Navbar = ({ toggleSidebar }) => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 z-10 h-16 bg-white border-b border-gray-200 shadow-sm transition-all duration-300">
+    <header className={`fixed top-0 z-10 h-16 bg-white border-b border-gray-200 shadow-sm transition-all duration-300 ${
+      sidebarOpen ? 'right-0 left-0 lg:left-64' : 'right-0 left-0 lg:left-20'
+    }`}>
       <div className="flex items-center justify-between h-full px-4 md:px-6">
         <div className="flex items-center space-x-4">
-          {/* Mobile menu button */}
+          {/* Menu toggle button */}
           <button 
             onClick={toggleSidebar}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none lg:hidden"
+            className="text-gray-500 hover:text-gray-700 focus:outline-none flex items-center justify-center"
+            aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
-            <FaBars className="h-5 w-5" />
+            {sidebarOpen ? (
+              <FaChevronLeft className="h-5 w-5" />
+            ) : (
+              <FaBars className="h-5 w-5" />
+            )}
           </button>
           
           {/* Home link */}
-          <Link to="/" className="flex items-center text-blue-600 hover:text-blue-700">
+          <Link to="/dashboard" className="flex items-center text-blue-600 hover:text-blue-700">
             <FaHome className="h-5 w-5 mr-2" />
-            <span className="font-medium hidden sm:inline">Home</span>
+            <span className="font-medium hidden sm:inline">Dashboard</span>
           </Link>
           
           {/* Search */}

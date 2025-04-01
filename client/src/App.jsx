@@ -57,9 +57,9 @@ function AppContent() {
               <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
               
               {/* Main content area */}
-              <div className={`flex flex-col flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : ''}`}>
+              <div className={`flex flex-col flex-1 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'}`}>
                 {/* Navbar - fixed position */}
-                <Navbar toggleSidebar={toggleSidebar} />
+                <Navbar toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
                 
                 {/* Main scrollable area */}
                 <main className="flex-1 overflow-y-auto pt-16 px-4 md:px-6 lg:px-8 pb-8">
